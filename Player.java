@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 public class Player{
 
     String playerName; // プレイヤー名
@@ -59,7 +58,3 @@ public class Player{
 
     }
 }
-=======
-// 担当：さえ
-aaa
->>>>>>> ff6610714200441fcfa75fe6d8981922469be0e2
