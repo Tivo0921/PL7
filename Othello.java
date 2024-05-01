@@ -2,14 +2,14 @@
 //座標を受け取って，配列を返す
 
 //工数6
-public class othelo {
+public class Othello {
     int disc; // 石の色．黒：1，白：2，緑：0
     int board[][] = new int[8][8];
     int winLose;
     public int X, Y; // 受け取った座標
     public int stone;// 受け取った色の情報
 
-    public othelo(int X, int Y) {
+    public Othello(int X, int Y) {
         if (X > 7 || X < 0 || Y > 7 || Y < 0) {
             throw new IllegalStateException("盤面の位置を正しく指定できていません");
         }
