@@ -24,7 +24,7 @@ public class Player extends JFrame{
     // Clientクラスのインスタンスを作成
     Client client = new Client();
 
-    // 工数2,進捗2
+    // 工数2,進捗1.8
     // アプリ立ち上げ
     public void setupApp(){
         // 接続画面の構成要素
@@ -126,7 +126,7 @@ public class Player extends JFrame{
         }
     }
 
-    // 工数1,進捗0.9
+    // 工数1,進捗0.8
     // マッチ画面描画
     // (旧:ルームIDを入力)
     public void displayMatchScreen(){
@@ -220,7 +220,7 @@ public class Player extends JFrame{
 
         // ルームIDが受理されたらマッチ確認画面へ遷移
         if(successMatching){
-
+            // マッチ確認画面はどのメソッドで描画する??
         }
     }
 
@@ -234,6 +234,7 @@ public class Player extends JFrame{
     // 工数1,進捗1
     // ルームの作成
     public void makeRoom(int playerID){
+        // Clientにルーム作成画面を描画してもらう
         client.displayRoomID(playerID);
     }
 
@@ -243,11 +244,10 @@ public class Player extends JFrame{
 
     }
 
-    // 工数1
+    // 工数0
     // プレイヤ名を取得
     public string getPlayerId(){
-
-        return playerID;
+        return playerName;
     }
 
     // 工数0.5
