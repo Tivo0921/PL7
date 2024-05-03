@@ -180,7 +180,7 @@ public class Player extends JFrame{
             mainPanel = new JPanel();
             // 全体パネル>上部パネル
             mainPanelHead = new JPanel();
-            mainPanelHead.setLayout(new GridLayout(3,1));
+            mainPanelHead.setLayout(new GridLayout(2,1));
             // 全体パネル>中心部パネル
             mainPanelBody = new JPanel();
             mainPanelBody.setLayout(new GridLayout(1,5));
@@ -189,8 +189,7 @@ public class Player extends JFrame{
             roomIdPanel.setLayout(new FrowLayout());
             // プレイヤ名表示
             playerName = client.displayPlayerName(playerId);
-            playerNameInfo = new JLabel(playerName);
-            playerIdInfo = new JLabel("(ID:"+playerId+")");
+            playerInfo = new JLabel(playerName+"\n(ID:"+playerId+")");
             // ルームIDを入力してください
             mainMessage = new JLabel("ルームIDを入力してください");
             // or
@@ -207,8 +206,7 @@ public class Player extends JFrame{
             makeNewRoom = new JButton("新規ルーム作成");
             makeNewRoom.addActionListener(matchAction);
             // 各パーツ配置
-            mainPanelHead.add(playerNameInfo);
-            mainPanelHead.add(playerIdInfo);
+            mainPanelHead.add(playerInfo);
             mainPanelHead.add(playRecord);
             mainPanelBody.add(mainMessage);
             mainPanelBody.add(roomIdPanel);
@@ -224,7 +222,7 @@ public class Player extends JFrame{
         }
     }
 
-    // 工数1,進捗0.1
+    // 工数0
     // 対戦成績の閲覧
     public void displayPlayRecord(){
         // Clientに対戦成績を描画してもらう
@@ -241,7 +239,7 @@ public class Player extends JFrame{
     // 工数1
     // プレイヤ名を受付
     public void acceptPlayerId(){
-
+        // これ何の為のメソッドだったっけ
     }
 
     // 工数0
@@ -269,10 +267,14 @@ public class Player extends JFrame{
 
     }
 
-    // 工数0.5
+    // 工数0
     // 投了受付
-    public boolean setGame(){
-
+    public boolean setGame(JButton resign){
+        resign.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                return true;
+            }
+        });
     }
     
 }
