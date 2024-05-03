@@ -147,7 +147,6 @@ public class Player{
 
     // マッチ画面描画
     public void displayMatchScreen(){
-
         JFrame matchFrame; // フレーム
         JPanel mainPanel; // 全体を覆うパネル
         JPanel mainPanelHead; // 上部を覆うパネル
@@ -175,6 +174,7 @@ public class Player{
                     roomId = inputRoomId.getText();
                     successMatching = client.acceptRoomID(roomId);
                     if(!successMatching){
+                        // ルームIDが受理されなかった場合はエラーメッセージを表示
                         cautionMessage = new JLabel("このルームIDは使用できません");
                         cautionMessage.setForeground(Color.red);
                         mainPanelBody.add(loginMessage);
@@ -187,6 +187,7 @@ public class Player{
             }
         }
 
+        // ルームIDが受理されるまで繰り返し
         while(!successMatching){
             // マッチ画面フレーム
             matchFrame = new JFrame();
@@ -234,6 +235,10 @@ public class Player{
             mainPanelBody.add(makeNewRoom);
         }
 
+        // ルームIDが受理されたらマッチ確認画面へ遷移
+        if(successMatching){
+            
+        }
     }
 
     // 工数1,進捗0.1
