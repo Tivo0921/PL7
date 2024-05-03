@@ -2,7 +2,15 @@
 
 import Client
 
-public class Player{
+//パッケージのインポート
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class Player extends JFrame{
 
     String playerName; // プレイヤー名
     int turn; // 先手後手(白黒)情報
@@ -19,8 +27,7 @@ public class Player{
     // 工数2,進捗2
     // アプリ立ち上げ
     public void setupApp(){
-        // 再接続確認画面の構成要素
-        JFrame connectionFrame; // 接続画面フレーム
+        // 接続画面の構成要素
         JFrame frame; // ログイン画面フレーム
         JPanel connectionPanel; // 全体パネル
         JPanel connectionPanelTop; // 全体パネル>上部パネル
@@ -32,7 +39,6 @@ public class Player{
         JLabel passwordLabel; // パスワード入力部ラベル
         JTextField passwordField; // パスワード入力部
         JTextField playerNameField; //プレイヤー名入力部
-        JButton retry; // リトライ(再接続)ボタン
         JButton exit; // 終了ボタン
         JButton ok; // OK(入力情報送信)ボタン
         // ログイン情報受付可否の変数宣言
@@ -40,15 +46,18 @@ public class Player{
         // 接続要求メソッドを呼び出し
         boolean connection = client.connectDemand();
 
+        // 接続できるまで
+        // 再接続確認画面描画
+        while(!connection){
+            // Clientに再接続選択画面を描画してもらう
+            connection = client.reconnectSelect();
+        }
+
         // ボタンのイベント処理
         ActionListener connectAction = new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                // [リトライボタン]が押されたら接続要求メソッドを呼び出し
-                if(e.getSource()==retry){
-                    connection = client.reconnectSelect();
-                }
                 // [終了ボタン]が押されたら再接続確認画面のフレーム表示を無効にする
-                else if(e.getSource()==exit){
+                if(e.getSource()==exit){
                     connectionFrame.setVisible(false);
                 }
                 // [OKボタン]が押されたらログイン情報受付メソッドを呼び出し
@@ -66,36 +75,8 @@ public class Player{
             }
         }
 
-        // 再接続確認画面描画
-        // 接続できるまでループ
-        while(!connection){
-            // フレーム設定
-            connectionFrame = new JFrame("接続失敗");
-            connectionFrame.setSize(500,300);
-            connectionFrame.setVisible(true);
-            // 全体のパネル設定(縦に[メッセージ]と[ボタン部分のパネル]を並べる)
-            connectionPanel = new JPanel();
-            connectionPanel.setLayout(new GridLayout(1,2));
-            // 接続失敗メッセージ設定
-            loginMessage = new JLabel("接続できませんでした");
-            // ボタン部分のパネル設定(横に[リトライボタン]と[終了ボタン]を並べる)
-            connectionPanelBottom = new JPanel();
-            connectionPanelBottom.setLayout(new FrowLayout());
-            // ボタン設定
-            retry = new JButton("リトライ");
-            retry.addActionListener(connectAction);
-            exit = new JButton("終了");
-            exit.addActionListener(connectAction);
-            // 各パーツ配置
-            connectionPanel.add(loginMessage)
-            connectionPanelBottom.add(retry);
-            connectionPanelBottom.add(exit);
-        }
-
         // 接続できたら
         // ログイン画面描画
-        // 再接続確認画面のフレーム表示を無効にする
-        connectionFrame.setVisible(false);
         // ログイン情報が受け付けられるまで繰り返し
         while(!loginAccept){
             // フレーム設定
@@ -145,7 +126,9 @@ public class Player{
         }
     }
 
+    // 工数1,進捗0.9
     // マッチ画面描画
+    // (旧:ルームIDを入力)
     public void displayMatchScreen(){
         JFrame matchFrame; // フレーム
         JPanel mainPanel; // 全体を覆うパネル
@@ -237,29 +220,21 @@ public class Player{
 
         // ルームIDが受理されたらマッチ確認画面へ遷移
         if(successMatching){
-            
+
         }
     }
 
     // 工数1,進捗0.1
     // 対戦成績の閲覧
     public void displayPlayRecord(){
-        // 対戦成績データの取得
+        // Clientに対戦成績を描画してもらう
         client.displayPlayRecord();
-        // 対戦成績画面の描画
-
     }
 
     // 工数1,進捗1
     // ルームの作成
     public void makeRoom(int playerID){
         client.displayRoomID(playerID);
-    }
-
-    // 工数1
-    // ルームIDを入力
-    public void inputRoomId(){
-
     }
 
     // 工数1
