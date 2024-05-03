@@ -173,7 +173,7 @@ public class Player{
                 // [OKボタン]が押されたらルームIDを送信
                 else if(e.getSource()==ok){
                     roomId = inputRoomId.getText();
-                    successMatching = acceptRoomID(roomId);
+                    successMatching = client.acceptRoomID(roomId);
                     if(!successMatching){
                         cautionMessage = new JLabel("このルームIDは使用できません");
                         cautionMessage.setForeground(Color.red);
@@ -182,7 +182,7 @@ public class Player{
                 }
                 // [新規ルーム作成ボタン]が押されたらルーム作成へ
                 else if(e.getSource()==makeNewRoom){
-                    makeRoom();
+                    makeRoom(playerId);
                 }
             }
         }
@@ -236,7 +236,7 @@ public class Player{
 
     }
 
-    // 工数1
+    // 工数1,進捗0.1
     // 対戦成績の閲覧
     public void displayPlayRecord(){
         // 対戦成績データの取得
@@ -245,10 +245,10 @@ public class Player{
 
     }
 
-    // 工数1
+    // 工数1,進捗1
     // ルームの作成
-    public void makeRoom(){
-
+    public void makeRoom(int playerID){
+        client.displayRoomID(playerID);
     }
 
     // 工数1
