@@ -139,7 +139,7 @@ public class Player extends JFrame{
         JLabel playerIdInfo; // ルームIDを表示
         JLabel mainMessage; //メインメッセージ表示
         JLabel or; // or表示
-        JTextField inputRoomId; // ルームID入力
+        JTextField roomIdField; // ルームID入力
         JButton playRecord; // 対戦成績閲覧ボタン
         JButton ok; // OKボタン
         JButton makeNewRoom; // 新規ルーム作成ボタン
@@ -154,7 +154,7 @@ public class Player extends JFrame{
                 }
                 // [OKボタン]が押されたらルームIDを送信
                 else if(e.getSource()==ok){
-                    roomId = inputRoomId.getText();
+                    roomId = roomIdField.getText();
                     successMatching = client.acceptRoomID(roomId);
                     if(!successMatching){
                         // ルームIDが受理されなかった場合はエラーメッセージを表示
@@ -195,7 +195,7 @@ public class Player extends JFrame{
             // or
             or = new JLabel("or");
             // ルームID入力部
-            inputRoomId = new JTextField(20);
+            roomIdField = new JTextField(20);
             // 対戦成績閲覧ボタン
             playRecord = new JButton("対戦成績閲覧");
             playRecord.addActionListener(matchAction);
@@ -210,7 +210,7 @@ public class Player extends JFrame{
             mainPanelHead.add(playRecord);
             mainPanelBody.add(mainMessage);
             mainPanelBody.add(roomIdPanel);
-            roomIdPanel.add(inputRoomId);
+            roomIdPanel.add(roomIdField);
             roomIdPanel.add(ok);
             mainPanelBody.add(or);
             mainPanelBody.add(makeNewRoom);
@@ -238,33 +238,37 @@ public class Player extends JFrame{
 
     // 工数1
     // プレイヤ名を受付
-    public void acceptPlayerId(){
+    public void acceptPlayerName(String name){
         // これ何の為のメソッドだったっけ
     }
 
     // 工数0
     // プレイヤ名を取得
-    public string getPlayerId(){
+    public string getPlayerName(){
         return playerName;
     }
 
     // 工数0.5
     // 先手後手(白黒)情報を取得
-    public int getTurn(){
-
-        return turn;
+    public void getTurn(String turnInfo){ // 引数はプレイヤ名、?
+        if(turnInfo == playerName){
+            turn = 0; //　自分のターン
+        }else{
+            turn = 1; // 相手のターン
+        }
     }
 
     // 工数1.5
     // 盤面の石の位置情報を送信
-    public void sendPosition(){
-
+    public void sendPosition(int[][] board){
+        client.displayBoard(board); // どこに送信、???
     }
 
     // 工数1.5
     // 盤面の石の位置情報を受信
-    public void getPosition(){
-
+    public int[][] getPosition(){ 
+        // どこから受信、???
+        return board;
     }
 
     // 工数0
