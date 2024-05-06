@@ -14,57 +14,57 @@ public class Server1 {
     public int maxRoomID = 0;// 最大のルームID(ルームID数-1)
     // 工数2,進捗1
 
-    public int[][] connectClient(){//一旦チャットする仕様にしてある
-        //TCPポートを指定してサーバソケットを作成
-        try(ServerSocket server = new ServerSocket(10000)){
-            while(true){
-                try{
-                    //クライアントからの接続待ち受け
+    public int[][] connectClient() {// 一旦チャットする仕様にしてある
+        // TCPポートを指定してサーバソケットを作成
+        try (ServerSocket server = new ServerSocket(10000)) {
+            while (true) {
+                try {
+                    // クライアントからの接続待ち受け
                     Socket sc = server.accept();
                     System.out.println("クライアントからの接続がありました");
 
                     BufferedReader reader = null;
                     PrintWriter writer = null;
 
-                    //クライアントからの接続ごとにスレッドで通信処理を実行
-                    try{
-                        //クライアントからの受け取り用
+                    // クライアントからの接続ごとにスレッドで通信処理を実行
+                    try {
+                        // クライアントからの受け取り用
                         reader = new BufferedReader(new InputStreamReader(sc.getInputStream()));
-                        //クライアントへの送信用
-                        writer = new PrintWriter(sc.getOutputStream(),true);
-                        //クライアントから「exit」が入力されるまで無限ループ
+                        // クライアントへの送信用
+                        writer = new PrintWriter(sc.getOutputStream(), true);
+                        // クライアントから「exit」が入力されるまで無限ループ
                         String line = null;
-                        while(true){
+                        while (true) {
                             line = reader.readLine();
-                            //クライアントから送信されたメッセージを取得
-                            if(line.equals("exit")){
+                            // クライアントから送信されたメッセージを取得
+                            if (line.equals("exit")) {
                                 break;
                             }
 
-                            System.out.println("クライアントからのメッセージ＝"+line);
+                            System.out.println("クライアントからのメッセージ＝" + line);
                             writer.println("Please Input");
                         }
 
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         ex.printStackTrace();
-                    }finally{
-                        //リソースの解放
-                        if(reader!=null){
+                    } finally {
+                        // リソースの解放
+                        if (reader != null) {
                             reader.close();
                         }
-                        if(writer!=null){
-                                writer.close();
+                        if (writer != null) {
+                            writer.close();
                         }
-                        if(sc!=null){
+                        if (sc != null) {
                             sc.close();
                         }
                     }
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     ex.printStackTrace();
                     break;
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -74,10 +74,10 @@ public class Server1 {
         for(int i = 0;i<maxRoomID;i++){
             for(int j = 0; j < 1 ; j++){
                 if(clientConnectionState[i][j]){
-                    System.out.println(i +"," j + ":接続中");
+                    System.out.println(i +"," + j + ":接続中");
                 }
                 else{
-                    System.out.println(i +"," j + ":接続切断");
+                    System.out.println(i +"," + j + ":接続切断");
                 }
 
             }
@@ -85,12 +85,12 @@ public class Server1 {
     }
 
     // 工数2,進捗0
-    public boolean checkLoginInformation(String){
+    public boolean checkLoginInformation(String ){
 
     }
 
-    // 工数1,進捗0
-    public int[][] transferPlayRecord(int[][]){
-        
+    // 工数1,進捗1
+    public int[][] transferPlayRecord(int playRecord[][]) {
+        return playRecord;
     }
 }
