@@ -17,6 +17,7 @@ public class Player extends JFrame{
     int roomId; // ルームID
     String password; // パスワード
     String playerId; // プレイヤのID
+    String[] loginPlayer = new int[2]; // パスワードをIDを配列にして送る
     int[][] stones = new int[8][8]; // 石を置いた場所
     int[][] gameRecord = new int[1][3]; // 対戦成績
     JButton gameSet = new JButton("投了"); // 投了ボタン 
@@ -64,7 +65,9 @@ public class Player extends JFrame{
                 else if(e.getSource()==ok){
                     playerId = playerNameField.getText();
                     password = passwordField.getText();
-                    loginAccept = client.loginInfoAccept(playerId,password);
+                    loginPlayer[0] = playerID;
+                    loginPlayer[1] = password;
+                    loginAccept = client.loginInfoAccept(loginPlayer);
                     // ログイン情報が受け付けられなかった場合はメッセージを表示
                     if(!loginAccept){
                         cautionMessage = new JLabel("パスワード又はログインIDが間違っています");
@@ -122,6 +125,7 @@ public class Player extends JFrame{
 
         // ログイン情報が受け付けられたらマッチ画面を描画
         if(loginAccept){
+            frame.setVisible(false);
             displayMatchScreen();
         }
     }
@@ -150,6 +154,7 @@ public class Player extends JFrame{
             public void actionPerformed(ActionEvent e){
                 // [対戦成績ボタン]が押されたら対戦成績画面表示
                 if(e.getSource()==playRecord){
+                    matchFrame.setVisible(false);
                     displayPlayRecord();
                 }
                 // [OKボタン]が押されたらルームIDを送信
@@ -165,6 +170,7 @@ public class Player extends JFrame{
                 }
                 // [新規ルーム作成ボタン]が押されたらルーム作成へ
                 else if(e.getSource()==makeNewRoom){
+                    matchFrame.setVisible(false);
                     makeRoom(playerId);
                 }
             }
@@ -218,7 +224,9 @@ public class Player extends JFrame{
 
         // ルームIDが受理されたらマッチ確認画面へ遷移
         if(successMatching){
-            // マッチ確認画面はどのメソッドで描画する??
+            matchFrame.setVisible(false);
+            // マッチ確認画面描画
+            displayMatching();
         }
     }
 
@@ -232,8 +240,67 @@ public class Player extends JFrame{
     // 工数1,進捗1
     // ルームの作成
     public void makeRoom(int playerID){
-        // Clientにルーム作成画面を描画してもらう
-        client.displayRoomID(playerID);
+        //ルームIDの取得
+        roomId = client.displayRoomID(playerID)
+
+        JFrame roomFrame = new JFrame();
+        JPanel roomPanel = new JPanel();
+        JPanel roomPanelTop = new JPanel();
+        JPanel roomPanelCenter = new JPanel();
+        JPanel roomIdPanel = new JPanel();
+        JLabel roomIdIs = new JLabel("あなたのルームIDは");
+        JLabel roomIdLabel = new JLabel(roomId);
+        JLabel desuLabel = new JLabel("です");
+        JLabel waiting = new JLabel("マッチ待機中");
+        JButton exitRoom = new JButton("キャンセル");
+
+        // ルーム作成画面のフレーム
+        roomFrame.setSize(500.300);
+        roomFrame.setVisible(true);
+        // 画面全体のパネル
+        roomPanel.setLayout(new GridLayout(1,2));
+        // 画面上部のパネル
+        roomPanelTop.setLayout(new BoxLayout.Y_AXIS);
+        // 画面中央部のパネル
+        roomPanelCenter.setLayout(new GridLayout(1,3));
+        // ルームID表示部のパネル
+        roomIdPanel.setLayout(new GridLayout(2,1));
+        // ルームIDは少し大きく表示する
+        roomIdLabel.setFont(new Font("Century",Font.BOLD,30));
+        // マッチ待機中表示はグレーにする
+        waiting.setForeground(Color.gray);
+        // [キャンセルボタン]の設定
+        exitRoom.setAlignmentX(getComponent.RIGHT_ALIGNMENT);
+        exitRoom.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                // ルームIDを削除する
+                client.deleteRoom();
+                // マッチ画面に戻る
+                roomFrame.setVisible(false);
+                displayMatchScreen();
+            }
+        });
+
+        roomPanel.add(roomPanelTop);
+        roomPanel.add(roomPanelCenter);
+        roomPanelTop.add(exitRoom);
+        roomPanelCenter.add(roomIdIs);
+        roomPanelCenter.add(roomIdPanel);
+        roomPanelCenter.add(waiting);
+        roomIdPanel.add(roomIdLabel);
+        roomIdPanel.add(desuLabel);
+    }
+
+    // マッチ確認画面描画
+    public void displayMatching(){
+        JFrame matchingFrame = new JFrame();
+        JPanel matchingPanel = new JPanel();
+        JLabel opponentIs = new JLabel("あなたの対戦相手は");
+        JLabel opponentName = new JLabel("Student"); // Studentは仮名
+        JLabel desuLabel = new Label("さんです");
+        JButton startGame = new JButton("対戦開始");
+
+        // 
     }
 
     // 工数1
