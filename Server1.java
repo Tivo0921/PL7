@@ -24,11 +24,13 @@ public class Server1 {
 
             while (true) {
                 try {
-                    // クライアントからの接続待ち受け(accept)
+                    // クライアントからの接続待ち受け、ログイン情報照合
                     Socket clientSocket1 = serverSocket.accept();// クライアント1に接続
                     System.out.println("先手からの接続がありました");
+                    checkLoginInformation();
                     Socket clientSocket2 = serverSocket.accept(); // クライアント2に接続
                     System.out.println("後手からの接続がありました");
+                    checkLoginInformation();
 
                     // クライアント1からの入力
                     InputStream inputStream1 = clientSocket1.getInputStream();
@@ -78,7 +80,7 @@ public class Server1 {
     }
 
     // 工数2,進捗0
-    public boolean checkLoginInformation(String[] ){
+    public boolean checkLoginInformation(String[]){
 
     }
 
