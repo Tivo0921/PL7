@@ -354,6 +354,7 @@ public class Player extends JFrame{
     public void getTurn(String turnInfo){ // 引数はプレイヤ名、?
         if(turnInfo == playerName){
             turn = 0; //　自分のターン
+            client.acceptPlayerMove(myBoard); // 操作
         }else{
             turn = 1; // 相手のターン
         }
