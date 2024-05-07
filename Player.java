@@ -18,7 +18,7 @@ public class Player extends JFrame{
     String password; // パスワード
     String playerId; // プレイヤのID
     String[] loginPlayer = new int[2]; // パスワードをIDを配列にして送る
-    int[][] board = new int[8][8]; // 石を置いた場所
+    int[][] myBoard = new int[8][8]; // 石を置いた場所
     int[][] gameRecord = new int[1][3]; // 対戦成績
     JButton gameSet = new JButton("投了"); // 投了ボタン 
 
@@ -315,7 +315,7 @@ public class Player extends JFrame{
             public void actionPerformed(ActionEvent e) {
                 matchingFrame.setVisible(false);
                 // 対戦画面へ
-                client.displayBoard(board);
+                client.displayBoard(myBoard);
             }
         });
 
@@ -330,7 +330,7 @@ public class Player extends JFrame{
     // 工数1
     // プレイヤ名を受付
     public void acceptPlayerName(String name){
-        // これ何の為のメソッドだったっけ
+        playerName = name;
     }
 
     // 工数0
@@ -352,14 +352,13 @@ public class Player extends JFrame{
     // 工数1.5
     // 盤面の石の位置情報を送信
     public void sendPosition(int[][] board){
-        client.displayBoard(board); // どこに送信、???
+        myBoard = board;
     }
 
     // 工数1.5
     // 盤面の石の位置情報を受信
     public int[][] getPosition(){ 
-        // どこから受信、???
-        return board;
+        return myBoard;
     }
 
     // 工数0
