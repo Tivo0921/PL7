@@ -1,18 +1,20 @@
 /*だて　編集 */
 //座標を受け取って，配列を返す
+//石を置いて，その後に裏返したりするメソッドを動かす
 
 //工数6
 public class Othello {
     int disc; // 石の色．黒：1，白：2，緑：0
     int board[][] = new int[8][8];
-    int winLose;
-    public int X, Y; // 受け取った座標
-    public int stone;// 受け取った色の情報
+    int winLose;// 勝ちの場合は1，負けの場合は0，引き分けの場合は2
+    int x, y; // 受け取った座標
+    int stone;// 受け取った色の情報
 
-    public Othello(int X, int Y) {
-        if (X > 7 || X < 0 || Y > 7 || Y < 0) {
+    public Othello(int x, int y) {
+        if (x > 7 || x < 0 || y > 7 || y < 0) {
             throw new IllegalStateException("盤面の位置を正しく指定できていません");
         }
+        Setup();// 盤面の初期化を行なっておく．
     }
 
     // 盤面を初期化する:Void
@@ -29,15 +31,26 @@ public class Othello {
     }
 
     // 石を置ける場所があるか判定する(配列):Boolean
-    public Boolean searchBoard(int Board[][]) {// 工数1，進捗0
+    // ターンが回ってきて，石をおく前にどこか置けるかどうかを判断
+    public Boolean searchBoard(int board[][]) {// 工数1，進捗0
+        int f = 0; // 置ける場所があるか否かをチェックするためのフラグ
 
-        return true;
-    }
+        if (checkColor(board) == true) {// 盤面が全て白 or 黒の場合
+            // ループを抜ける
+            break;
+        }
 
-    // 石を置く場所を指定する(配列):配列
-    public int[][] selectBoard(int[][] Board) {// 工数1，進捗0
+        for (int i = 0; i < 8; i++) {// 盤面の，石が置かれていない場所全てをチェックする
+            for (int j = 0; j < 8; j++) {
+                if (checkBoard(i, j, stone) == true)// その位置に石を置いて，一つでもひっくり返る石がある場合
+                    f++;
+            }
+        }
 
-        return Board;
+        if (f == 0) // 置ける場所が一つもなかった場合
+            return false;
+        else // 置ける場所が一つでもあった場合
+            return true;
     }
 
     // 石を置けるか判定する(配列):boolean
@@ -70,19 +83,35 @@ public class Othello {
         }
     }
 
-    // 石を置く(配列):void
-    public void putDisc(int Board[][]) {// 工数0.5，進捗0
-
+    public int[][] calcBoard(int x, int y, int stone) {// 盤面チェック後の計算を行い，盤面情報を返す
+        putStone(x, y, stone);// 石を置く
+        turnStone(x, y, stone);// 石を裏返す
+        return board;
     }
 
-    // 石を裏返す(配列)：配列
-    public int[][] reverseDisc(int Board[][]) {// 工数0.5，進捗0
+    // 石を置く(配列):void
+    public void putStone(int x, int y, int stone) {// 工数0.5，進捗0
+        if (checkBoard(x, y, stone) == true) {// 石を置ける場合
+            board[y][x] = stone;
+        } else {// 石を置けない場合
+        }
+    }
 
-        return Board;
+    // 石を裏返す
+    public void turnStone(int x, int y, int stone) {
+        // 8方向を確認してひっくり返す．
+        turnLeftUp(x, y, stone);
+        turnUp(x, y, stone);
+        turnRightUp(x, y, stone);
+        turnLeft(x, y, stone);
+        turnRight(x, y, stone);
+        turnLeftDown(x, y, stone);
+        turnDown(x, y, stone);
+        turnRightDown(x, y, stone);
     }
 
     // 以下の八つのメソッドで，おいた場所から8方向の確認を行なっています
-    public void turnLeftUp(int x, int y) {// 左上方向
+    public void turnLeftUp(int x, int y, int stone) {// 左上方向
         int next = board[y - 1][x - 1];// 左上の石
 
         if (next != stone && next != 0) {
@@ -99,7 +128,7 @@ public class Othello {
         }
     }
 
-    public void turnUp(int x, int y) {// 上方向
+    public void turnUp(int x, int y, int stone) {// 上方向
         if (y > 1) {// 盤面の上から2行目より下で行う処理
             int next = board[y - 1][x];// 1つ上の石
             if (next != stone && next != 0) {// 1つ上の石が違う色の場合
@@ -117,7 +146,7 @@ public class Othello {
         }
     }
 
-    public void turnRightUp(int x, int y) {// 右上
+    public void turnRightUp(int x, int y, int stone) {// 右上
         if (y > 1 && x < 6) {
             // 隣の石
             int next = board[y - 1][x + 1];
@@ -141,7 +170,7 @@ public class Othello {
         }
     }
 
-    public void turnDown(int x, int y) {// 下
+    public void turnDown(int x, int y, int stone) {// 下
         // 下の石
         int next = board[y + 1][x];
         // 下の石が裏の場合
@@ -163,7 +192,7 @@ public class Othello {
         }
     }
 
-    public void turnRight(int x, int y) {// 右
+    public void turnRight(int x, int y, int stone) {// 右
         if (x < 6) {
             // 右隣の石
             int next = board[y][x + 1];
@@ -186,7 +215,7 @@ public class Othello {
         }
     }
 
-    public void turnLeftDown(int x, int y) {// 左下
+    public void turnLeftDown(int x, int y, int stone) {// 左下
         if (y < 6 && x > 1) {
             // 左下の石
             int next = board[y + 1][x - 1];
@@ -210,7 +239,7 @@ public class Othello {
         }
     }
 
-    public void turnLeft(int x, int y) {// 左
+    public void turnLeft(int x, int y, int stone) {// 左
         if (x > 1) {
             // 左の石
             int next = board[y][x - 1];
@@ -233,7 +262,7 @@ public class Othello {
         }
     }
 
-    public void turnRightDown(int x, int y) {// 左下
+    public void turnRightDown(int x, int y, int stone) {// 左下
         if (y < 6 && x < 6) {
             // 左下の石
             int next = board[y + 1][x + 1];
@@ -286,7 +315,24 @@ public class Othello {
     }
 
     // 勝敗判定(配列,int)：int
-    public int Judge(int Board[][], int winLose) {// 工数0.5，進捗0
+    public int Judge(int board[][], int winLose) {// 工数0.5，進捗0
+        int countB = 0, countW = 0;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (board[j][i] == 1)
+                    countB++;
+                else if (board[j][i] == 2)
+                    countW++;
+            }
+        }
+        if (countB > countW) {
+            winLose = 1;
+        } else if (countB == countW) {
+            winLose = 2;
+        } else if (countB < countW) {
+            winLose = 0;
+        }
         return winLose;
     }
+
 }
