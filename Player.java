@@ -18,7 +18,7 @@ public class Player extends JFrame{
     String password; // パスワード
     String playerId; // プレイヤのID
     String[] loginPlayer = new int[2]; // パスワードをIDを配列にして送る
-    int[][] stones = new int[8][8]; // 石を置いた場所
+    int[][] board = new int[8][8]; // 石を置いた場所
     int[][] gameRecord = new int[1][3]; // 対戦成績
     JButton gameSet = new JButton("投了"); // 投了ボタン 
 
@@ -63,9 +63,9 @@ public class Player extends JFrame{
                 }
                 // [OKボタン]が押されたらログイン情報受付メソッドを呼び出し
                 else if(e.getSource()==ok){
-                    playerId = playerNameField.getText();
+                    playerName = playerNameField.getText();
                     password = passwordField.getText();
-                    loginPlayer[0] = playerID;
+                    loginPlayer[0] = playerName;
                     loginPlayer[1] = password;
                     loginAccept = client.loginInfoAccept(loginPlayer);
                     // ログイン情報が受け付けられなかった場合はメッセージを表示
@@ -295,12 +295,36 @@ public class Player extends JFrame{
     public void displayMatching(){
         JFrame matchingFrame = new JFrame();
         JPanel matchingPanel = new JPanel();
+        JPanel opponentPanel = new JPanel();
         JLabel opponentIs = new JLabel("あなたの対戦相手は");
         JLabel opponentName = new JLabel("Student"); // Studentは仮名
         JLabel desuLabel = new Label("さんです");
         JButton startGame = new JButton("対戦開始");
 
-        // 
+        // マッチ確認画面のフレーム
+        matchingFrame.setSize(500.300);
+        matchingFrame.setVisible(true);
+        // 画面全体のパネル
+        matchingPanel.setLayout(new GridLayout(1,3));
+        // 対戦相手表示部パネル
+        opponentPanel.setLayout(new FrowLayout());
+        // 対戦相手の名前は少し大きく表示する
+        opponentName.setFont(new Font("Century",Font.BOLD,30));
+        // [対戦開始ボタン]の設定
+        startGame.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) {
+                matchingFrame.setVisible(false);
+                // 対戦画面へ
+                client.displayBoard(board);
+            }
+        });
+
+        // 配置
+        matchingPanel.add(opponentIs);
+        matchingPanel.add(opponentPanel);
+        opponentPanel.add(opponentName);
+        opponentPanel.add(desuLabel);
+        matchingPanel.add(startGame);
     }
 
     // 工数1
