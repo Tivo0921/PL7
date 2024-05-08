@@ -142,7 +142,7 @@ public class Player extends JFrame {
         JPanel mainPanelBody; // 中心部を覆うパネル
         JPanel roomIdPanel; // ルームID入力部を覆うパネル
         JLabel playerNameInfo; // プレイヤ名を表示
-        JLabel playerIdInfo; // ルームIDを表示
+        JLabel playerInfo; // ルームIDを表示
         JLabel mainMessage; // メインメッセージ表示
         JLabel or; // or表示
         JTextField roomIdField; // ルームID入力
@@ -168,7 +168,7 @@ public class Player extends JFrame {
                         // ルームIDが受理されなかった場合はエラーメッセージを表示
                         cautionMessage = new JLabel("このルームIDは使用できません");
                         cautionMessage.setForeground(Color.red);
-                        mainPanelBody.add(loginMessage);
+                        mainPanelBody.add(cautionMessage);
                     }
                 }
                 // [新規ルーム作成ボタン]が押されたらルーム作成へ
@@ -196,9 +196,8 @@ public class Player extends JFrame {
             // 中心部パネル>ルームID入力部パネル
             roomIdPanel = new JPanel();
             roomIdPanel.setLayout(new FlowLayout());
-            // プレイヤ名表示(クライアントプログラムからプレイヤ名を取得?)
-            playerName = client.displayPlayerName(playerId);
-            playerInfo = new JLabel(playerName + "\n(ID:" + playerId + ")");
+            // プレイヤ名表示
+            playerInfo = new JLabel("ユーザ : "+playerName);
             // ルームIDを入力してください
             mainMessage = new JLabel("ルームIDを入力してください");
             // or
@@ -243,9 +242,9 @@ public class Player extends JFrame {
 
     // 工数1,進捗1
     // ルームの作成
-    public void makeRoom(int playerID) {
+    public void makeRoom(String playerName) {
         // クライアントプログラムからルームIDの取得
-        roomId = client.displayRoomID(playerID);
+        roomId = client.getRoomID(playerName);
 
         JFrame roomFrame = new JFrame(); // ルーム作成画面
         JPanel roomPanel = new JPanel(); // 全体を覆うパネル
