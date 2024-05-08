@@ -252,13 +252,13 @@ public class Player extends JFrame {
         JPanel roomPanelCenter = new JPanel(); // 中央部パネル(文字&ボタンを入れる)
         JPanel roomIdPanel = new JPanel(); // ルームID表示部パネル
         JLabel roomIdIs = new JLabel("あなたのルームIDは");
-        JLabel roomIdLabel = new JLabel(roomId);
+        JLabel roomIdLabel = new JLabel(Integer.toString(roomId));
         JLabel desuLabel = new JLabel("です");
         JLabel waiting = new JLabel("マッチ待機中");
         JButton exitRoom = new JButton("キャンセル");
 
         // ルーム作成画面のフレーム
-        roomFrame.setSize(500.300);
+        roomFrame.setSize(500,300);
         roomFrame.setVisible(true);
         // 画面全体のパネル
         roomPanel.setLayout(new GridLayout(1, 2));
@@ -303,7 +303,7 @@ public class Player extends JFrame {
         JPanel opponentPanel = new JPanel();
         JLabel opponentIs = new JLabel("あなたの対戦相手は");
         JLabel opponentName = new JLabel("Student"); // Studentは仮名
-        JLabel desuLabel = new Label("さんです");
+        JLabel desuLabel = new JLabel("さんです");
         JButton startGame = new JButton("対戦開始");
 
         // マッチ確認画面のフレーム
@@ -375,6 +375,7 @@ public class Player extends JFrame {
                 return true;
             }
         });
+        return false;
     }
 
 }
