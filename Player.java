@@ -189,7 +189,7 @@ public class Player extends JFrame {
             mainPanel = new JPanel();
             // 全体パネル>上部パネル
             mainPanelHead = new JPanel();
-            mainPanelHead.setLayout(new BoxLayout());
+            mainPanelHead.setLayout(new BorderLayout());
             // 全体パネル>中心部パネル
             mainPanelBody = new JPanel();
             mainPanelBody.setLayout(new GridLayout(1, 5));
@@ -206,7 +206,6 @@ public class Player extends JFrame {
             roomIdField = new JTextField(20);
             // 対戦成績閲覧ボタン
             playRecord = new JButton("対戦成績閲覧");
-            playRecord.setAlignmentX(Component.LEFT_ALIGNMENT);
             playRecord.addActionListener(matchAction);
             // OK(ルームID送信)ボタン
             ok = new JButton("OK");
@@ -216,7 +215,7 @@ public class Player extends JFrame {
             makeNewRoom.addActionListener(matchAction);
             // 各パーツ配置
             mainPanelHead.add(playerInfo);
-            mainPanelHead.add(playRecord);
+            mainPanelHead.add(playRecord,BorderLayout.EAST);
             mainPanelBody.add(mainMessage);
             mainPanelBody.add(roomIdPanel);
             roomIdPanel.add(roomIdField);
@@ -263,7 +262,7 @@ public class Player extends JFrame {
         // 画面全体のパネル
         roomPanel.setLayout(new GridLayout(1, 2));
         // 画面上部のパネル
-        roomPanelTop.setLayout(new BoxLayout());
+        roomPanelTop.setLayout(new BorderLayout());
         // 画面中央部のパネル
         roomPanelCenter.setLayout(new GridLayout(1, 3));
         // ルームID表示部のパネル
@@ -273,7 +272,6 @@ public class Player extends JFrame {
         // マッチ待機中表示はグレーにする
         waiting.setForeground(Color.gray);
         // [キャンセルボタン]の設定
-        exitRoom.setAlignmentX(Component.RIGHT_ALIGNMENT);
         exitRoom.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // クライアントプログラムを介してサーバプログラムにルームIDを削除してもらう
@@ -287,7 +285,7 @@ public class Player extends JFrame {
         // 配置
         roomPanel.add(roomPanelTop);
         roomPanel.add(roomPanelCenter);
-        roomPanelTop.add(exitRoom);
+        roomPanelTop.add(exitRoom,BorderLayout.WEST);
         roomPanelCenter.add(roomIdIs);
         roomPanelCenter.add(roomIdPanel);
         roomPanelCenter.add(waiting);
