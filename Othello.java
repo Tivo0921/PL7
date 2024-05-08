@@ -37,7 +37,7 @@ public class Othello {
 
         if (checkColor(board) == true) {// 盤面が全て白 or 黒の場合
             // ループを抜ける
-            break;
+            // break;<-エラー起きたから一旦コメントアウト
         }
 
         for (int i = 0; i < 8; i++) {// 盤面の，石が置かれていない場所全てをチェックする

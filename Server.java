@@ -16,7 +16,7 @@ import javax.swing.*;
 
 import javax.sound.midi.Receiver;
 
-public class Server2 {
+public class Server {
     public int[][] clientConnectionState = new int[1][2];
     public String playerName = new String();
     public String password = new String();
@@ -349,59 +349,59 @@ public class Server2 {
         } // end try
     }
 
-    public void updateResults(int playerId, boolean isWinner, boolean isDraw, Statement stmt, Connection conn) {//工数4
-      String sql;
-      int idChecker;
-      try {
-          //STEP 1: Register JDBC driver
-           Class.forName(JDBC_DRIVER);
-           conn = DriverManager.getConnection(DB_URL,USER,PASS);
-           stmt = conn.createStatement();
-            if(isWinner){
-                 String sql = "SELECT id FROM rooms";
+    public void updateResults(int playerId, boolean isWinner, boolean isDraw, Statement stmt, Connection conn) {// 工数4
+        String sql;
+        int idChecker;
+        try {
+            // STEP 1: Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            stmt = conn.createStatement();
+            if (isWinner) {
+                String sql = "SELECT id FROM rooms";
                 ResultSet rs = stmt.executeQuery(sql);
-    
-                //STEP 4: Extract data from result set
-                while(rs.next()) {
-               /    /Retrieve by column name
-                    int id  = rs.getInt("id");
-                    if(roomId == id){
+
+                // STEP 4: Extract data from result set
+                while (rs.next()) {
+                    // Retrieve by column name;<-SQL分からないので一旦コメントアウト
+                    int id = rs.getInt("id");
+                    if (roomId == id) {
                         existRoom = true;
                         break;
                     }
                 }
                 sql = "UPDATE Results" + "SET win = win + 1 WHERE playerId = playerId";
                 stmt.executeUpdate(sql);
+            } else if (isDraw) {
+                sql = "UPDATE Results" + "SET draw = draw + 1 WHERE playerId = playerId";
+                stmt.executeUpdate(sql);
+            } else {
+                sql = "UPDATE Results" + "SET lose = lose + 1 WHERE playerId = playerId";
+                stmt.executeUpdate(sql);
             }
-            else if(isDraw){
-               sql = "UPDATE Results" + "SET draw = draw + 1 WHERE playerId = playerId";
-               stmt.executeUpdate(sql);
-            }
-            else{
-               sql = "UPDATE Results" + "SET lose = lose + 1 WHERE playerId = playerId";
-               stmt.executeUpdate(sql);
-            }
-          //STEP 4: Clean-up environment
-           stmt.close();
-           conn.close();
-        } catch(SQLException se) {
-          //Handle errors for JDBC
-           se.printStackTrace();
-        } catch(Exception e) {
-          //Handle errors for Class.forName
-           e.printStackTrace();
+            // STEP 4: Clean-up environment
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            // Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            // Handle errors for Class.forName
+            e.printStackTrace();
         } finally {
-          //finally block used to close resources
-           try{
-              if(stmt!=null) stmt.close();
-           } catch(SQLException se2) {
-           }//nothing we can do
-           try {
-              if(conn!=null) conn.close();
-           } catch(SQLException se){
-              se.printStackTrace();
-           }//end finally try
-        }//end try
+            // finally block used to close resources
+            try {
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException se2) {
+            } // nothing we can do
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            } // end finally try
+        } // end try
     }
 
     String serveName(int id, Statement stmt, Connection conn) {
