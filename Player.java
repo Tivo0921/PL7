@@ -307,7 +307,7 @@ public class Player extends JFrame {
         JButton startGame = new JButton("対戦開始");
 
         // マッチ確認画面のフレーム
-        matchingFrame.setSize(500.300);
+        matchingFrame.setSize(500,300);
         matchingFrame.setVisible(true);
         // 画面全体のパネル
         matchingPanel.setLayout(new GridLayout(1, 3));
