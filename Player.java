@@ -15,7 +15,7 @@ public class Player extends JFrame {
     int roomId; // ルームID
     String password; // パスワード
     String playerId; // プレイヤのID
-    String[] loginPlayer = new int[2]; // パスワードをIDを配列にして送る
+    // String[] loginPlayer = new String[2]; // パスワードをIDを配列にして送る // って話じゃなかったっけ
     int[][] myBoard = new int[8][8]; // 石を置いた場所
     // int[][] gameRecord = new int[][]; // 対戦成績
     // JButton gameSet = new JButton("投了"); // 投了ボタン
@@ -62,16 +62,14 @@ public class Player extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // [終了ボタン]が押されたら再接続確認画面のフレーム表示を無効にする
                 if (e.getSource() == exit) {
-                    connectionFrame.setVisible(false);
+                    frame.setVisible(false);
                 }
                 // [OKボタン]が押されたらログイン情報受付メソッドを呼び出し
                 else if (e.getSource() == ok) {
                     playerName = playerNameField.getText();
                     password = passwordField.getText();
-                    loginPlayer[0] = playerName;
-                    loginPlayer[1] = password;
                     // クライアントプログラムからログイン可否を受け取る
-                    loginAccept = client.loginInfoAccept(loginPlayer);
+                    loginAccept = client.loginInfoAccept(playerName, password);
                     // ログイン情報が受け付けられなかった場合はメッセージを表示
                     if (!loginAccept) {
                         cautionMessage = new JLabel("パスワード又はプレイヤ名が間違っています");
@@ -108,7 +106,7 @@ public class Player extends JFrame {
             passwordField = new JTextField(20);
             // ボタン部分のパネル設定(横に[OKボタン]と[終了ボタン]を並べる)
             connectionPanelBottom = new JPanel();
-            connectionPanelBottom.setLayout(new FrowLayout());
+            connectionPanelBottom.setLayout(new FlowLayout());
             // ボタン部分の設定
             ok = new JButton("OK");
             ok.addActionListener(connectAction);
@@ -185,7 +183,7 @@ public class Player extends JFrame {
         while (!successMatching) {
             // マッチ画面フレーム
             matchFrame = new JFrame();
-            matchFrame.setSize(500.300);
+            matchFrame.setSize(500,300);
             matchFrame.setVisible(true);
             // 全体パネル
             mainPanel = new JPanel();
@@ -197,7 +195,7 @@ public class Player extends JFrame {
             mainPanelBody.setLayout(new GridLayout(1, 5));
             // 中心部パネル>ルームID入力部パネル
             roomIdPanel = new JPanel();
-            roomIdPanel.setLayout(new FrowLayout());
+            roomIdPanel.setLayout(new FlowLayout());
             // プレイヤ名表示(クライアントプログラムからプレイヤ名を取得?)
             playerName = client.displayPlayerName(playerId);
             playerInfo = new JLabel(playerName + "\n(ID:" + playerId + ")");
@@ -315,7 +313,7 @@ public class Player extends JFrame {
         // 画面全体のパネル
         matchingPanel.setLayout(new GridLayout(1, 3));
         // 対戦相手表示部パネル
-        opponentPanel.setLayout(new FrowLayout());
+        opponentPanel.setLayout(new FlowLayout());
         // 対戦相手の名前は少し大きく表示する
         opponentName.setFont(new Font("Century", Font.BOLD, 30));
         // [対戦開始ボタン]の設定
@@ -343,7 +341,7 @@ public class Player extends JFrame {
 
     // 工数0
     // プレイヤ名を取得
-    public string getPlayerName() {
+    public String getPlayerName() {
         return playerName;
     }
 
