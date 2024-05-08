@@ -161,7 +161,7 @@ public class Player extends JFrame {
                 }
                 // [OKボタン]が押されたらルームIDを送信
                 else if (e.getSource() == ok) {
-                    roomId = roomIdField.getText();
+                    roomId = Integer.parseInt(roomIdField.getText());
                     // クライアントプログラムから該当ルームの有無を受け取る
                     successMatching = client.acceptRoomID(roomId);
                     if (!successMatching) {
@@ -189,7 +189,7 @@ public class Player extends JFrame {
             mainPanel = new JPanel();
             // 全体パネル>上部パネル
             mainPanelHead = new JPanel();
-            mainPanelHead.setLayout(new BoxLayout.Y_AXIS());
+            mainPanelHead.setLayout(new BoxLayout());
             // 全体パネル>中心部パネル
             mainPanelBody = new JPanel();
             mainPanelBody.setLayout(new GridLayout(1, 5));
@@ -263,7 +263,7 @@ public class Player extends JFrame {
         // 画面全体のパネル
         roomPanel.setLayout(new GridLayout(1, 2));
         // 画面上部のパネル
-        roomPanelTop.setLayout(new BoxLayout.Y_AXIS());
+        roomPanelTop.setLayout(new BoxLayout());
         // 画面中央部のパネル
         roomPanelCenter.setLayout(new GridLayout(1, 3));
         // ルームID表示部のパネル
@@ -370,12 +370,16 @@ public class Player extends JFrame {
     // 工数0
     // 投了受付
     public boolean setGame(JButton resign) {
+        
+        // ボタンが押されたかどうか
+        boolean btn = false;
+
         resign.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                return true;
+                btn = true;
             }
         });
-        return false;
+        return btn;
     }
 
 }
