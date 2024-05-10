@@ -113,7 +113,6 @@ public class Client extends JFrame implements ActionListener {
             System.out.println("Error: InterruptedException (in 再接続選択)");
         }
         // 結果によって分岐
-        System.out.println(command);
         if (command.equals("1")) {
 
             // 「はい」
@@ -136,31 +135,21 @@ public class Client extends JFrame implements ActionListener {
             return false;
     }
 
-    /* ログイン情報受付 工数:0.5（Playerに移動？） */
-    public boolean loginInfoAccept(String PlayerID, String password) {
-        // 受け取った情報をそのままソケット通信で送る
+    /*ログイン情報受付　工数:0.5（Playerに移動？）*/
+    public boolean loginInfoAccept(String PlayerName, String password) {
+        //受け取った情報をそのままソケット通信で送る（未完成）
         return false;
-    }
-
-    /* プレイヤ名表示 工数:0.5（Playerに移動？） */
-    public void displayPlayerName(String x) {
-    }
-
-    /* 対戦成績の表示 工数:3 */
-    public void displayPlayRecord(int[][] x) {
     }
 
     /* ルームID取得 工数:1 */
     public int getRoomID() {
+        //ルームを新規に作成した際のIDをサーバから取得する
         return 0;
     }
 
-    /* プレイヤのID情報送信 工数:0.5（Playerに移動？） */
-    public void sendPlayerID(int playerID) {
-    }
-
-    /* 入力されたルームID受付 工数:1（Playerに移動？） */
-    public boolean acceptRoomID() {
+    /*入力されたルームID受付　工数:1*/
+    public boolean acceptRoomID(int roomID) {
+        //引数に入力したルームが存在するかをサーバに問い合わせ、その結果を戻り値として返す
         return false;
     }
 
@@ -362,7 +351,7 @@ public class Client extends JFrame implements ActionListener {
     }
 
     /* 勝敗分を表示 工数:0.5 進捗:0.5 */
-    // 戻り値をbooleanに変更（再戦するかどうかの選択）
+    // 戻り値boolean（再戦するかどうかの選択）
     public void displayResult(int x) {
         instText.replaceRange("ゲーム終了！", 0, instText.getText().length());
         // 3秒待機
@@ -374,35 +363,61 @@ public class Client extends JFrame implements ActionListener {
 
     }
 
-    /* 対戦成績表示 工数:2 進捗:0 */
-    public void displayGameRecord() {
-        // 対戦成績をサーバから要求
-        // （テスト用にこちらでデータを用意しています）
-        int[][] record = { { 1, 1 }, { 1, 2 }, { 1, 3 } };
+    /*対戦成績表示　工数:3　進捗:2*/
+    public void displayGameRecord(){
+        //対戦成績をサーバから要求
+        //（テスト用にこちらでデータを用意しています）
+        String[][] record = {{"Aさん","22勝21敗54分"},{"BBBBさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"全角十文字のスペース","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"CCCCCCさん","22勝21敗54分"},{"CCCCCCさん","22勝21敗54分"},
+        {"DDDDDDDDさん","22勝21敗54分"},{"DDDDDDDDさん","22勝21敗54分"}};
+        int num = 24;//成績のデータ行数（＝人数）
 
-        JDialog dialog = new JDialog(this, "Dialog Title");
-        Container dc = dialog.getContentPane();
-        dc.setLayout(null);
-
-        JLabel title = new JLabel("対戦成績");
-        title.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 25));
-        title.setHorizontalAlignment(JLabel.CENTER);
-
-        JTextField recordText = new JTextField("あいうえお", 20); // テキストエリア作成
-        recordText.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 16)); // フォントの設定
-        recordText.setBounds(10, row * 45 + 120, row * 45 + 10, 40); // 境界の設定
-        recordText.setEditable(false); // 編集不可能にする
-
-        JTextField recordText2 = new JTextField("", 20); // テキストエリア作成
-        recordText2.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 16)); // フォントの設定
-        recordText2.setBounds(10, row * 45 + 120, row * 45 + 10, 40); // 境界の設定
-        recordText2.setEditable(false); // 編集不可能にする
-
-        dc.add(title, "Center");
-        dc.add(recordText, "Center");
-        dialog.pack();
-        dialog.setVisible(true);
-
+        //JFrameの設定
+        JFrame myFrame = new JFrame("成績閲覧");//作成
+        myFrame.setSize(400,450);//ウィンドウの大きさの設定
+        myFrame.setLayout(null);//レイアウトマネージャは無し（座標を直接指定）
+        //タイトル「対戦成績」の表示
+        JLabel title = new JLabel("対戦成績");//作成
+        title.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 25));//フォントの設定
+        title.setBounds(140, 0, 200, 40); //境界の設定
+        myFrame.add(title);//ペインに追加
+        //成績本体を表示するためのJPanelの設定
+        JPanel p = new JPanel();//作成
+        p.setPreferredSize(new Dimension(350, 22*num));//サイズの調整（縦はデータの数に応じて大きさを変える）
+        //JScrollPaneの設定（pを制御する）
+        JScrollPane scrollpane = new JScrollPane(p);//作成
+        scrollpane.setBounds(10, 50, 370, 350); //境界の設定
+        //成績本体を表示するためのJTextFieldの設定
+        JTextField recordText[][] = new JTextField[num][3];
+        //対戦成績本体（1行毎にループを用いてpに貼り付けていく）
+        for(int i=0; i<num; i++){
+            recordText[i][0] = new JTextField(record[i][0],19); //テキストエリア作成
+            recordText[i][1] = new JTextField(record[i][1],15);
+            recordText[i][2] = new JTextField("投了数" + i,10);
+            recordText[i][0].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13)); //フォントの設定
+            recordText[i][1].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+            recordText[i][2].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+            recordText[i][0].setEditable(false); //編集不可能にする
+            recordText[i][1].setEditable(false);
+            recordText[i][2].setEditable(false);
+            p.add(recordText[i][0]);
+            p.add(recordText[i][1]);
+            p.add(recordText[i][2]);
+        }
+        //データをまとめたJScrollPaneをJFrameに貼り付けて表示
+        myFrame.add(scrollpane,BorderLayout.CENTER);
+        //最後にJFrameの表示設定
+        myFrame.setVisible(true); 
     }
 
     /* 切断のメッセージを表示 工数:0.25 進捗:0 */
@@ -416,23 +431,6 @@ public class Client extends JFrame implements ActionListener {
         return 0;
     }
 
-    public void mouseClicked(MouseEvent e) {
-        command = ((JButton) e.getComponent()).getActionCommand();// クリックしたオブジェクトを取得し、ボタンの名前を取り出す
-        System.out.println("マウスがクリックされました。押されたボタンは " + command + "です。");// テスト用に標準出力
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }// マウスがオブジェクトに入ったときの処理
-
-    public void mouseExited(MouseEvent e) {
-    }// マウスがオブジェクトから出たときの処理
-
-    public void mousePressed(MouseEvent e) {
-    }// マウスでオブジェクトを押したときの処理
-
-    public void mouseReleased(MouseEvent e) {
-    }// マウスで押していたオブジェクトを離したときの処理
-
     public void actionPerformed(ActionEvent e) {
         command = e.getActionCommand();// クリックしたオブジェクトを取得し、ボタンの名前を取り出す
         System.out.println("マウスがクリックされました(ActionPerformed)。押されたボタンは " + command + "です。");// テスト用に標準出力
@@ -443,7 +441,7 @@ public class Client extends JFrame implements ActionListener {
         int turn;
         Client tc = new Client();// クライアントのインスタンス作成
         tc.setVisible(true);
-        // サーバへの接続
+        //サーバへの接続
         tc.connectServer();
 
         // ループ
@@ -470,7 +468,7 @@ public class Client extends JFrame implements ActionListener {
                 tc.sendGameResult(0);// 対戦結果をサーバに送信
                 tc.displayResult(0);// 対戦結果を表示し、再戦するかの選択を受け付ける
             }
-
         }
     }
 }
+
