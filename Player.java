@@ -343,7 +343,7 @@ public class Player extends JFrame {
 
     // 工数0
     // プレイヤ名を取得
-    public string getPlayerName() {
+    public String getPlayerName() {
         return playerName;
     }
 

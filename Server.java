@@ -14,21 +14,141 @@ import java.net.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-import javax.sound.midi.Receiver;
+//スレッド部（各クライアントに応じて）
+class ClientProcThread extends Thread {
+    private int number;// 自分の番号
+    private Socket incoming;
+    private InputStreamReader myIsr;
+    private BufferedReader myIn;
+    private PrintWriter myOut;
+    private String myName;// 接続者の名前
+    private String myPass;
+    private String myRoom;
+    private boolean roomFull = false;
+    private String viewResult;
 
-public class Server {
-    public int[][] clientConnectionState = new int[1][2];
-    public String playerName = new String();
-    public String password = new String();
-    public int playerID = 0;
-    public boolean loginSuccess = false;
-    public int[][] playRecord = new int[1][3];
-    public int roomId = 0;// 0から昇順
-    public int maxRoomId = 0;// 最大のルームID(ルームID数-1)
-    private int maxClient = 25;
+    public Connection conn;
+    public Statement stmt;
+    public PreparedStatement pstmt;
 
-    private PrintWriter[] out; // データ送信用オブジェクト
-    private Receiver[] receiver; // データ受信用オブジェクト
+    public ClientProcThread(int n, Socket i, InputStreamReader isr, BufferedReader in, PrintWriter out) {
+        number = n;
+        incoming = i;
+        myIsr = isr;
+        myIn = in;
+        myOut = out;
+    }
+
+    public void run() {
+        try {
+            myOut.println("Hello, client No." + number + "! Enter 'Bye' to exit.");// 初回だけ呼ばれる
+            String receivedLogin = myIn.readLine();
+
+            // カンマを基に名前とパスワードに分割
+            String[] splitReceivedLogin = receivedLogin.split(",");
+
+            myName = splitReceivedLogin[0];// 初めて接続したときの一行目は名前
+            myPass = splitReceivedLogin[1];
+            if (!Server.checkLoginInformation(conn, stmt, myName, myPass)) {
+                myOut.println("アカウントを新規登録します");
+                Server.loginSubmit(conn, pstmt, number, myName, myPass);
+            }
+            while (true) {
+                myRoom = myIn.readLine();
+                if (myRoom == "View Results") {
+                    myOut.println(Server.countPlayRecord(stmt, conn));
+                    for (int i = 1; i <= Server.countPlayRecord(stmt, conn); i++) {
+                        int[][] result = Server.transferPlayRecord(pstmt, conn, i);
+                        // 二次元配列を文字列に変換
+                        StringBuilder sb = new StringBuilder();
+                        for (int p = 0; p < result.length; p++) {
+                            for (int j = 0; j < result[p].length; j++) {
+                                sb.append(result[p][j]);
+                                if (j < result[p].length - 1) {
+                                    sb.append(",");
+                                }
+                            }
+                            if (p < result.length - 1) {
+                                sb.append(";");
+                            }
+                        }
+                        String resultString = sb.toString();
+                        myOut.println(Server.serveName(i, pstmt, conn) + ",id:" + resultString);
+                        myOut.flush();
+                    }
+                } else if (MyServer.confirmRoom(Integer.parseInt(myRoom), stmt, conn)) {
+                    if (!roomFull) {
+                        myOut.println("ルームID" + myRoom + "に接続しました");
+                        myOut.flush();
+                        roomFull = true;
+                        break;
+                    } else {
+                        myOut.println("ルームが満員です。ルームを作成してください");
+                        myOut.flush();
+                        int room = Server.makeRoom(conn, pstmt);
+                        myOut.println("ルームID" + roomId + "を立てました");
+                        myOut.flush();
+                        break;
+                    }
+                } else {
+                    int roomId = Server.makeRoom(conn, pstmt);
+                    myOut.println("ルームID" + roomId + "を立てました");
+                    myOut.flush();
+
+                    break;
+                }
+            }
+
+            while (true) {// 無限ループで，ソケットへの入力を監視する
+                String str = myIn.readLine();
+                // match endを受け取ったら対戦終了
+                if (str == "match end") {
+                    String receivedResults1 = myIn.readLine();
+                    String[] splitReceivedResults1 = receivedResults1.split(",");
+                    String resultId1 = splitReceivedResults1[0];
+                    String resultWin1 = splitReceivedResults1[1];
+                    String resultLose1 = splitReceivedResults1[2];
+                    Server.updateResults(Integer.parseInt(resultId1), Integer.parseInt(resultWin1),
+                            Integer.parseInt(resultLose1), pstmt, conn);
+
+                    String receivedResults2 = myIn.readLine();
+                    String[] splitReceivedResults2 = receivedResults1.split(",");
+                    String resultId2 = splitReceivedResults1[0];
+                    String resultWin2 = splitReceivedResults1[1];
+                    String resultLose2 = splitReceivedResults1[2];
+                    Server.updateResults(Integer.parseInt(resultId2), Integer.parseInt(resultWin2),
+                            Integer.parseInt(resultLose2), pstmt, conn);
+
+                    Server.removeRoom(Integer.parseInt(myRoom), conn, pstmt);
+
+                    break;
+                }
+
+                System.out.println("Received from client No." + number + "(" + myName + "), Messages: " + str);
+                if (str != null) {// このソケット（バッファ）に入力があるかをチェック
+                    Server.SendAll(str, myName);// サーバに来たメッセージは接続しているクライアント全員に配る
+                }
+            }
+        } catch (Exception e) {
+            // ここにプログラムが到達するときは，接続が切れたとき
+            System.out.println("Disconnect from client No." + number + "(" + myName + ")");
+            MyServer.SetFlag(number, false);// 接続が切れたのでフラグを下げる
+        }
+    }
+}
+
+class Server {
+
+    private static int maxConnection = 100;// 最大接続数
+    private static Socket[] incoming;// 受付用のソケット
+    private static boolean[] flag;// 接続中かどうかのフラグ
+    private static InputStreamReader[] isr;// 入力ストリーム用の配列
+    private static BufferedReader[] in;// バッファリングをによりテキスト読み込み用の配列
+    private static PrintWriter[] out;// 出力ストリーム用の配列
+    private static ClientProcThread[] myClientProcThread;// スレッド用の配列
+    private static int member;// 接続しているメンバーの数
+    public static int roomId = 0;// 0から昇順
+    public static int maxRoomId = 3;// 最大のルームID(ルームID数-1)
 
     static final String JDBC_DRIVER = "org.h2.Driver";
     static final String DB_URL = "jdbc:h2:tcp://localhost/~/PL7_server";
@@ -37,93 +157,7 @@ public class Server {
     static final String USER = "lemon";
     static final String PASS = "Fuu190523";
 
-    public void connectClient(String[] args,Connection conn,Statement stmt) {
-        // TCPポートを指定してサーバソケットを作成
-        boolean player1Login=false;//player1がログインしてるかのチェック
-        boolean player2Login=false;//player2がログインしてるかのチェック
-        try {
-            ServerSocket serverSocket = new ServerSocket(10000);
-            System.out.println("サーバーが起動しました。");
-
-            while (true) {
-                try {
-                    // クライアントからの接続待ち受け、ログイン情報照合
-                    if(player1Login){
-                        Socket clientSocket1 = serverSocket.accept();// クライアント1に接続
-                        System.out.println("先手からの接続がありました");
-                        if(!checkLoginInformation(conn,stmt,login[])){
-                            //もう一度入力させる命令をクライアントに送らせる
-                        }
-                        player1Login = true;
-                        //ここでmakeRoomを起動してルーム作成するか、transferRecordをきどうして成績確認するかの判断をクライアントから受け取りたい
-                    }
-                    if(player2Login){
-                        Socket clientSocket2 = serverSocket.accept(); // クライアント2に接続
-                        System.out.println("後手からの接続がありました");
-                        if(!checkLoginInformation(conn,stmt,login[])){
-                            //もう一度入力させる命令をクライアントに送らせる
-                        }
-                        player2Login = true;
-                        //ここでルームIDの入力を受け取る
-                        //ここでconfirmRoomを起動し、できてたら次に進む。できてなかったら入力繰り返し
-                    }
-                    
-
-
-                    // クライアント1からの入力
-                    InputStream inputStream1 = clientSocket1.getInputStream();
-                    ObjectInputStream objectInputStream1 = new ObjectInputStream(inputStream1);
-                    int[][] array1 = (int[][]) objectInputStream1.readObject();
-                    // クライアント2にデータを転送
-                    OutputStream outputStream2 = clientSocket2.getOutputStream();
-                    ObjectOutputStream objectOutputStream2 = new ObjectOutputStream(outputStream2);
-                    objectOutputStream2.writeObject(array1);
-                    objectOutputStream2.flush();
-
-                    // クライアント2からの入力
-                    InputStream inputStream2 = clientSocket2.getInputStream();
-                    ObjectInputStream objectInputStream2 = new ObjectInputStream(inputStream2);
-                    int[][] array2 = (int[][]) objectInputStream2.readObject();
-                    // クライアント1にデータを転送
-                    OutputStream outputStream1 = clientSocket1.getOutputStream();
-                    ObjectOutputStream objectOutputStream1 = new ObjectOutputStream(outputStream1);
-                    objectOutputStream1.writeObject(array2);
-                    objectOutputStream1.flush();
-
-                    //ここにmatchEndがクライアントから送られてくるかどうかの処理を行いたい
-
-                    // 接続を閉じる
-                    if(matchEnd){
-                        clientSocket1.close();
-                        clientSocket2.close();
-                        //ここにremoveRoom
-                    }
-                } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // 工数1,進捗1
-    public int[][] checkClientConnection(void){//clientCOnnectionState[][]を返す
-        for(int i = 0;i<maxRoomID;i++){
-            for(int j = 0; j < 2 ; j++){
-                if(clientConnectionState[i][j]){
-                    System.out.println(i +"," + j + ":接続中");
-                }
-                else{
-                    System.out.println(i +"," + j + ":接続切断");
-                }
-
-            }
-        }
-    }
-
-    // 工数2,進捗0
-    public boolean checkLoginInformation(Connection conn, Statement stmt, String login[]) {
+    public static boolean checkLoginInformation(Connection conn, Statement stmt, String cName, String cPass) {
         String sql;
         boolean existinfo = false;
         try {
@@ -143,7 +177,7 @@ public class Server {
             // STEP 4: Extract data from result set
             while (rs.next()) {
                 // Retrieve by column name
-                if (login[0] == rs.getString("name") && login[1] == rs.getString("pass")) {
+                if (cName == rs.getString("name") && cPass == rs.getString("pass")) {
                     existinfo = true;
                     break;
                 }
@@ -173,9 +207,9 @@ public class Server {
         return existinfo;
     }
 
-    // 工数1,進捗1
-    public int[][] transferPlayRecord(Statement stmt, Connection conn, int playerId, int playRecord[][]) {// 対戦成績の転送
+    public static int countPlayRecord(Statement stmt, Connection conn) {
         String sql;
+        int rows = 0;
         try {
             // STEP 1: Register JDBC driver
             Class.forName(JDBC_DRIVER);
@@ -187,13 +221,11 @@ public class Server {
             // STEP 3: Execute a query
             System.out.println("Connected database successfully...");
             stmt = conn.createStatement();
-            sql = "SELECT win,lose,draw FROM results where id = playerId";
+            sql = "SELECT COUNT(*) FROM results";
             ResultSet rs = stmt.executeQuery(sql);
 
-            playRecord[playerId][0] = rs.getInt("win");
-            playRecord[playerId][1] = rs.getInt("lose");
-            playRecord[playerId][2] = rs.getInt("draw");
-
+            // STEP 4: Extract data from result set
+            rows = rs.getInt("count(*)");
             // STEP 5: Clean-up environment
             rs.close();
         } catch (SQLException se) {
@@ -216,54 +248,201 @@ public class Server {
                 se.printStackTrace();
             } // end finally try
         } // end try
+        return rows;
+    }
+
+    public static String serveName(int id, Statement stmt, Connection conn) {
+        String sql;
+        String name = "";
+        try {
+            // STEP 1: Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+
+            // STEP 2: Open a connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+            // STEP 3: Execute a query
+            System.out.println("Connected database successfully...");
+            stmt = conn.createStatement();
+            sql = "SELECT name FROM client WHERE id = ?";
+            ResultSet rs = stmt.executeQuery(sql);
+
+            // STEP 4: Extract data from result set
+            name = rs.getString("name");
+            // STEP 5: Clean-up environment
+            rs.close();
+        } catch (SQLException se) {
+            // Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            // Handle errors for Class.forName
+            e.printStackTrace();
+        } finally {
+            // finally block used to close resources
+            try {
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException se2) {
+            } // nothing we can do
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            } // end finally try
+        } // end try
+        return name;
+    }
+
+    public static int[][] transferPlayRecord(PreparedStatement pstmt, Connection conn, int playerId) {// 対戦成績の転送
+        String sql;
+        int[][] playRecord = new int[1][3];
+        try {
+            // STEP 1: Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+
+            // STEP 2: Open a connection
+            System.out.println("Connecting to database...");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+
+            // STEP 3: Execute a query
+            System.out.println("Connected database successfully...");
+            sql = "SELECT win,lose,draw FROM results where id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, playerId);
+            ResultSet rs = pstmt.executeQuery();
+
+            playRecord[playerId][0] = rs.getInt("win");
+            playRecord[playerId][1] = rs.getInt("lose");
+            playRecord[playerId][2] = rs.getInt("draw");
+
+            // STEP 5: Clean-up environment
+            rs.close();
+        } catch (SQLException se) {
+            // Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            // Handle errors for Class.forName
+            e.printStackTrace();
+        } finally {
+            // finally block used to close resources
+            try {
+                if (pstmt != null)
+                    pstmt.close();
+            } catch (SQLException se2) {
+            } // nothing we can do
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            } // end finally try
+        } // end try
         return playRecord;
     }
 
-    public int makeRoom(Connection conn, Statement stmt) {// 工数1.0
+    // 全員にメッセージを送る
+    public static void SendAll(String str, String myName) {
+        // 送られた来たメッセージを接続している全員に配る
+        for (int i = 1; i <= member; i++) {
+            if (flag[i] == true) {
+                out[i].println(str);
+                out[i].flush();// バッファをはき出す＝＞バッファにある全てのデータをすぐに送信する
+                System.out.println("Send messages to client No." + i);
+            }
+        }
+    }
+
+    // フラグの設定を行う
+    public static void SetFlag(int n, boolean value) {
+        flag[n] = value;
+    }
+
+    public static void loginSubmit(Connection conn, PreparedStatement stmt, int id, String name, String pass) {// 工数1.0
         String sql;
-        boolean checkRoom[];
+        try {
+            // STEP 1: Register JDBC driver
+            Class.forName(JDBC_DRIVER);
+
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            sql = "INSERT INTO rooms" + "VALUES (?,?,?)";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, id);
+            stmt.setString(2, name);
+            stmt.setString(3, pass);
+            stmt.executeUpdate(sql);
+
+            // STEP 4: Clean-up environment
+            stmt.close();
+            conn.close();
+        } catch (SQLException se) {
+            // Handle errors for JDBC
+            se.printStackTrace();
+        } catch (Exception e) {
+            // Handle errors for Class.forName
+            e.printStackTrace();
+        } finally {
+            // finally block used to close resources
+            try {
+                if (stmt != null)
+                    stmt.close();
+            } catch (SQLException se2) {
+            } // nothing we can do
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException se) {
+                se.printStackTrace();
+            } // end finally try
+        } // end try
+
+    }
+
+    public static int makeRoom(Connection conn, PreparedStatement stmt) {// 工数1.0
+        String sql;
         roomId = 0;
         for (int i = 0; i <= maxRoomId; i++) {
             roomId++;
-            if (!checkRoom[i]) {
+            try {
+                // STEP 1: Register JDBC driver
+                Class.forName(JDBC_DRIVER);
+
+                conn = DriverManager.getConnection(DB_URL, USER, PASS);
+                sql = "INSERT INTO rooms" + "VALUES (?)";
+                stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, roomId);
+                stmt.executeUpdate(sql);
+
+                // STEP 4: Clean-up environment
+                stmt.close();
+                conn.close();
+            } catch (SQLException se) {
+                // Handle errors for JDBC
+                se.printStackTrace();
+            } catch (Exception e) {
+                // Handle errors for Class.forName
+                e.printStackTrace();
+            } finally {
+                // finally block used to close resources
                 try {
-                    // STEP 1: Register JDBC driver
-                    Class.forName(JDBC_DRIVER);
-
-                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                    stmt = conn.createStatement();
-                    sql = "INSERT INTO rooms" + "VALUES (roomId)";
-                    stmt.executeUpdate(sql);
-
-                    // STEP 4: Clean-up environment
-                    stmt.close();
-                    conn.close();
+                    if (stmt != null)
+                        stmt.close();
+                } catch (SQLException se2) {
+                } // nothing we can do
+                try {
+                    if (conn != null)
+                        conn.close();
                 } catch (SQLException se) {
-                    // Handle errors for JDBC
                     se.printStackTrace();
-                } catch (Exception e) {
-                    // Handle errors for Class.forName
-                    e.printStackTrace();
-                } finally {
-                    // finally block used to close resources
-                    try {
-                        if (stmt != null)
-                            stmt.close();
-                    } catch (SQLException se2) {
-                    } // nothing we can do
-                    try {
-                        if (conn != null)
-                            conn.close();
-                    } catch (SQLException se) {
-                        se.printStackTrace();
-                    } // end finally try
-                } // end try
-            }
+                } // end finally try
+            } // end try
+
         }
         return roomId;
     }
 
-    public boolean confirmRoom(int roomId, Statement stmt, Connection conn) {// 工数1.0
+    public static boolean confirmRoom(int roomId, Statement stmt, Connection conn) {// 工数1.0
         boolean existRoom = false;
 
         try {
@@ -314,18 +493,19 @@ public class Server {
         return existRoom;
     }
 
-    public void removeRoom(int roomId, Connection conn, Statement stmt) {// 工数0.5
+    public static void removeRoom(int roomId, Connection conn, PreparedStatement pstmt) {// 工数0.5
         String sql;
         try {
             // STEP 1: Register JDBC driver
             Class.forName(JDBC_DRIVER);
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            stmt = conn.createStatement();
-            sql = "DELETE FROM rooms " + "WHERE id = roomId";
-            stmt.executeUpdate(sql);
+            sql = "DELETE FROM rooms WHERE id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, roomId);
+            pstmt.executeUpdate(sql);
 
             // STEP 4: Clean-up environment
-            stmt.close();
+            pstmt.close();
             conn.close();
         } catch (SQLException se) {
             // Handle errors for JDBC
@@ -336,8 +516,8 @@ public class Server {
         } finally {
             // finally block used to close resources
             try {
-                if (stmt != null)
-                    stmt.close();
+                if (pstmt != null)
+                    pstmt.close();
             } catch (SQLException se2) {
             } // nothing we can do
             try {
@@ -349,34 +529,29 @@ public class Server {
         } // end try
     }
 
-    public void updateResults(int playerId, boolean isWinner, boolean isDraw, Statement stmt, Connection conn) {// 工数4
+    public static void updateResults(int playerId, int win, int lose, PreparedStatement stmt, Connection conn) {// 工数4
         String sql;
-        int idChecker;
         try {
             // STEP 1: Register JDBC driver
             Class.forName(JDBC_DRIVER);
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            stmt = conn.createStatement();
-            if (isWinner) {
-                String sql = "SELECT id FROM rooms";
-                ResultSet rs = stmt.executeQuery(sql);
 
-                // STEP 4: Extract data from result set
-                while (rs.next()) {
-                    // Retrieve by column name;<-SQL分からないので一旦コメントアウト
-                    int id = rs.getInt("id");
-                    if (roomId == id) {
-                        existRoom = true;
-                        break;
-                    }
-                }
-                sql = "UPDATE Results" + "SET win = win + 1 WHERE playerId = playerId";
+            if (win == 1) {
+                sql = "UPDATE Results" + "SET win = win + 1 WHERE playerId = ?";
+                stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, playerId);
                 stmt.executeUpdate(sql);
-            } else if (isDraw) {
-                sql = "UPDATE Results" + "SET draw = draw + 1 WHERE playerId = playerId";
+
+            } else if (lose == 1) {
+                sql = "UPDATE Results" + "SET lose = lose + 1 WHERE playerId = ?";
+                stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, playerId);
                 stmt.executeUpdate(sql);
+
             } else {
-                sql = "UPDATE Results" + "SET lose = lose + 1 WHERE playerId = playerId";
+                sql = "UPDATE Results" + "SET draw = draw + 1 WHERE playerId = ?";
+                stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, playerId);
                 stmt.executeUpdate(sql);
             }
             // STEP 4: Clean-up environment
@@ -404,59 +579,37 @@ public class Server {
         } // end try
     }
 
-    String serveName(int id, Statement stmt, Connection conn) {
-        String sql;
-        String name;
+    // mainプログラム
+    public static void main(String[] args) {
+        // 必要な配列を確保する
+        incoming = new Socket[maxConnection];
+        flag = new boolean[maxConnection];
+        isr = new InputStreamReader[maxConnection];
+        in = new BufferedReader[maxConnection];
+        out = new PrintWriter[maxConnection];
+        myClientProcThread = new ClientProcThread[maxConnection];
+
+        int n = 1;
+
         try {
-            // STEP 1: Register JDBC driver
-            Class.forName(JDBC_DRIVER);
+            System.out.println("The server has launched!");
+            ServerSocket server = new ServerSocket(10000);// 10000番ポートを利用する
+            while (true) {
+                incoming[n] = server.accept();
+                flag[n] = true;
+                System.out.println("Accept client No." + n);
+                // 必要な入出力ストリームを作成する
+                isr[n] = new InputStreamReader(incoming[n].getInputStream());
+                in[n] = new BufferedReader(isr[n]);
+                out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
 
-            // STEP 2: Open a connection
-            System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, USER, PASS);
-
-            // STEP 3: Execute a query
-            System.out.println("Connected database successfully...");
-            stmt = conn.createStatement();
-            sql = "SELECT name FROM client WHERE id = id";
-            ResultSet rs = stmt.executeQuery(sql);
-
-            // STEP 4: Extract data from result set
-            name = rs.getString("name");
-            // STEP 5: Clean-up environment
-            rs.close();
-        } catch (SQLException se) {
-            // Handle errors for JDBC
-            se.printStackTrace();
+                myClientProcThread[n] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]);// 必要なパラメータを渡しスレッドを作成
+                myClientProcThread[n].start();// スレッドを開始する
+                member = n;// メンバーの数を更新する
+                n++;
+            }
         } catch (Exception e) {
-            // Handle errors for Class.forName
-            e.printStackTrace();
-        } finally {
-            // finally block used to close resources
-            try {
-                if (stmt != null)
-                    stmt.close();
-            } catch (SQLException se2) {
-            } // nothing we can do
-            try {
-                if (conn != null)
-                    conn.close();
-            } catch (SQLException se) {
-                se.printStackTrace();
-            } // end finally try
-        } // end try
-        return name;
-    }
-
-    public static void main(String[] args) { // main,工数5
-        Connection conn = null;
-        Statement stmt = null;
-
-        connectClient(args, conn, stmt);
-
-        // ここでクライアントから対戦結果を受信する
-
-        // ここにupdateResultsを入れて対戦成績を更新
-
+            System.err.println("ソケット作成時にエラーが発生しました: " + e);
+        }
     }
 }
