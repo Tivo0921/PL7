@@ -144,9 +144,8 @@ public class Client extends JFrame implements ActionListener {
     /*ログイン情報受付　工数:0.5*/
     public boolean loginInfoAccept(String playerName, String password) {
         //受け取った情報をそのままソケット通信で送る
-        System.out.println("文字列を送信します");
+        //※その情報が存在しない場合は新たなユーザとして登録する
         writer.println("Login:" + playerName + "," + password);
-        System.out.println("送信完了");
         return true;
     }
 
