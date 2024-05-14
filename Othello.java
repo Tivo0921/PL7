@@ -32,7 +32,7 @@ public class Othello {
 
     // 石を置ける場所があるか判定する(配列):Boolean
     // ターンが回ってきて，石をおく前にどこか置けるかどうかを判断
-    public Boolean searchBoard(int board[][]) {// 工数1，進捗0
+    public Boolean searchBoard(int board[][], int stone) {// 工数1，進捗0
         int f = 0; // 置ける場所があるか否かをチェックするためのフラグ
 
         if (checkColor(board) == true) {// 盤面が全て白 or 黒の場合
