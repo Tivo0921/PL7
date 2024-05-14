@@ -178,6 +178,11 @@ public class Client extends JFrame implements ActionListener {
         return Integer.parseInt(message);
     }
 
+    /*指定したルームの削除*/
+    public void deleteRoomID(){
+        System.out.println("部屋を削除しました");
+    }
+
     /* サーバに接続 工数:0.25 進捗:0.25 */
     public void connectServer() {
         while (true) {
