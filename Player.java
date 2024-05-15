@@ -131,7 +131,7 @@ public class Player extends JFrame {
             connectionPanel.add(connectionPanelTop);
             connectionPanel.add(connectionPanelCenter);
             connectionPanel.add(connectionPanelBottom);
-            contentPane1.add(connectionPanel, BorderLayout.NORTH);
+            contentPane1.add(connectionPanel);
             frame.setVisible(true);
         
         // ボタンの入力がされるまで待機
@@ -172,7 +172,6 @@ public class Player extends JFrame {
         JFrame matchFrame = new JFrame("マッチ画面"); // フレーム
         JPanel mainPanel = new JPanel(); // 全体を覆うパネル
         JPanel mainPanelHead = new JPanel(); // 上部を覆うパネル
-        JPanel mainPanelBody = new JPanel(); // 中心部を覆うパネル
         JPanel roomIdPanel = new JPanel(); // ルームID入力部を覆うパネル
         JLabel playerInfo = new JLabel("ユーザ : "+playerName); // プレイヤ名を表示
         JLabel mainMessage = new JLabel("ルームIDを入力してください");// メインメッセージ表示
@@ -191,9 +190,7 @@ public class Player extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // [対戦成績ボタン]が押されたら対戦成績画面表示
                 if (e.getSource() == playRecord) {
-                    matchFrame.setVisible(false);
-                    displayPlayRecord();
-                    matchFrame.setVisible(true);
+                    command = "3";
                 }
                 // [OKボタン]が押されたらルームIDを送信
                 else if (e.getSource() == ok) {
@@ -222,34 +219,36 @@ public class Player extends JFrame {
 
         // ルームIDが受理されるまで繰り返し
             // マッチ画面フレーム
-            matchFrame.setSize(500,500);
+            matchFrame.setSize(500,300);
             // 全体パネル
-            mainPanel.setLayout(new GridLayout(2, 1));
+            mainPanel.setLayout(new GridLayout(5, 1));
             // 全体パネル>上部パネル
-            mainPanelHead.setLayout(new BorderLayout());
-            // 全体パネル>中心部パネル
-            mainPanelBody.setLayout(new GridLayout(5, 1));
+            mainPanelHead.setLayout(new GridLayout(1, 2));
             // 中心部パネル>ルームID入力部パネル
             roomIdPanel.setLayout(new FlowLayout());
+            // メッセージ部分
+            mainMessage.setHorizontalAlignment(JLabel.CENTER);
+            or.setHorizontalAlignment(JLabel.CENTER);
             // 対戦成績閲覧ボタン
             playRecord.addActionListener(matchAction);
+            playRecord.setPreferredSize(new Dimension(200, 100));
             // OK(ルームID送信)ボタン
             ok.addActionListener(matchAction);
             ok.setActionCommand("1");
             // 新規ルーム作成ボタン
             makeNewRoom.addActionListener(matchAction);
+            makeNewRoom.setPreferredSize(new Dimension(200, 100));
             // 各パーツ配置
             mainPanelHead.add(playerInfo);
-            mainPanelHead.add(playRecord,BorderLayout.EAST);
-            mainPanelBody.add(mainMessage);
-            mainPanelBody.add(roomIdPanel);
+            mainPanelHead.add(playRecord);
             roomIdPanel.add(roomIdField);
             roomIdPanel.add(ok);
-            mainPanelBody.add(or);
-            mainPanelBody.add(makeNewRoom);
             mainPanel.add(mainPanelHead);
-            mainPanel.add(mainPanelBody);
-            contentPane2.add(mainPanel, BorderLayout.NORTH);
+            mainPanel.add(mainMessage);
+            mainPanel.add(roomIdPanel);
+            mainPanel.add(or);
+            mainPanel.add(makeNewRoom);
+            contentPane2.add(mainPanel, BorderLayout.CENTER);
             matchFrame.setVisible(true);
         
         // ボタンの入力がされるまで待機
@@ -268,6 +267,11 @@ public class Player extends JFrame {
                     matchFrame.setVisible(false);
                     makeRoom(playerName);
                     matchFrame.setVisible(true);
+                } 
+
+                if (command.equals("3")) {
+                    displayPlayRecord();
+                    command = "";
                 } 
             }
         } catch (InterruptedException e) {
