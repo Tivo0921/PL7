@@ -1,5 +1,11 @@
 //クライアントプログラム 担当: さどゆう
 
+/*残りタスク: 
+先手後手・プレイヤ名の受け渡し（Player側にメソッド作ってもらう？それともこちらのmain処理をメソッド化する？）
+再戦処理
+対戦成績をサーバから受信する
+※サーバとの接続全般、エラーの解消
+*/
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +23,7 @@ public class Client extends JFrame implements ActionListener {
     String playerName = new String();
     String playerID = new String();
     String password = new String();
-    boolean firstMove; // 0なら自分の手番、1（0以外）なら相手の手番
+    boolean firstMove = true; // 先手か後手か。trueなら自分が先手、falseなら自分が後手
     // 定数
     static final int ROW = 8; // オセロ盤の行数・列数
     // プライベート変数
@@ -27,16 +33,20 @@ public class Client extends JFrame implements ActionListener {
     private ImageIcon blackIcon, whiteIcon, boardIcon; // アイコン
     private Container c; // ペインを取得するコンテナ
     private int[][] board = new int[ROW][ROW]; // 現在の盤面
-    private String myName = "さどゆう";// 自分のプレイヤ名
-    private String opponentName = "Player01";// 相手のプレイヤ名
+    private String myName;// 自分のプレイヤ名
+    private String opponentName;// 相手のプレイヤ名
     private int myColor = 1;// 自分の石の色
-    private int opponentColor = 0;// 相手の石の色
+    private int opponentColor = 2;// 相手の石の色
     private JTextArea stoneInfoText; // 石の数を表示するテキストエリア
     private JTextArea instText; // 操作指示を表示するテキストエリア
     private String command; // どのボタンが押されたかを識別するコマンド
     private int placeX; //どの位置に石を置いたかを記憶する
     private int placeY;
     private int nextOp; //今行った操作（石を置く:0、投了:1、パス:2）を記憶する
+    private Othello myOthello;
+
+    private int testCounter = 0;
+
     // サーバとの通信用
     private Socket socket;
     private PrintWriter writer;
@@ -60,6 +70,7 @@ public class Client extends JFrame implements ActionListener {
         jb.addActionListener(this);
         // オセロ盤に必要な情報を生成
         boardButtonArray = new JButton[ROW][ROW];// ボタンの配列を作成
+        myOthello = new Othello(0, 0);//Otelloインスタンスを作成
     }
 
     /* 接続要求 工数:0.25 進捗:0.25 */
@@ -77,6 +88,7 @@ public class Client extends JFrame implements ActionListener {
             e.printStackTrace();
             return false;
         }
+
     }
 
     /* 再接続選択 工数:2.25 進捗:2.25 */
@@ -143,7 +155,7 @@ public class Client extends JFrame implements ActionListener {
     public int acceptRoomID(int roomID) {
         //引数に入力したルームが存在するかをサーバに問い合わせ、その結果を戻り値として返す
         //存在しない場合はそのルームを作成する
-        String message = "";
+        String message = "12345";
         try{
             writer.println(roomID);
             message = reader.readLine();
@@ -156,7 +168,7 @@ public class Client extends JFrame implements ActionListener {
 
     /*作成したルームID取得*/
     public int getRoomID(){
-        String message = "";
+        String message = "23456";
         try{
             writer.println("make a room");
             message = reader.readLine();
@@ -286,9 +298,27 @@ public class Client extends JFrame implements ActionListener {
             int y = Integer.parseInt(boardString.substring(4,5)); //3つ目の引数（操作対象のy座標）を取得
             int opponentColor = 0;//Integer.parseInt(boardString.substring(6,7)); //4つ目の引数（操作対象の色）を取得
 
+            /* 
+            //サーバを介せない時のテスト用 盤面の中からランダムな座標を3つ指定して石を置く（ルール無視してます）
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                System.out.println("Error: InterruptedException (in 対戦相手の操作情報を受信)");
+            }
+            if(testCounter == 4){
+                opponentNextOp = 2;
+            }else if(testCounter == 9){
+                opponentNextOp = 1;
+            }
+            Random r = new Random();
+            board[r.nextInt(ROW)][r.nextInt(ROW)] = opponentColor;
+            board[r.nextInt(ROW)][r.nextInt(ROW)] = opponentColor;   
+            board[r.nextInt(ROW)][r.nextInt(ROW)] = opponentColor;   
+            testCounter++; 
+            */
+
             if(opponentNextOp == 0){   //操作の種類:0（石を置く）
-                Othello myOthello = new Othello(x, y); //盤面計算用の Othello インスタンス
-                //board = myOthello.calcBoard(x, y, opponentColor); //実際に盤面を計算
+                board = myOthello.calcBoard(x, y, opponentColor); //実際に盤面を計算
             }else if(opponentNextOp == 1){  //操作の種類:1（投了）
                 updateTextArea(1, "相手が投了を選択しました");
                 try {
@@ -305,18 +335,10 @@ public class Client extends JFrame implements ActionListener {
                 }
             }
             System.out.println("対戦相手の操作完了");
-            
-            // ***テスト用として、こちらのプログラム側で盤面を変更しています***//
-            /* // ボタンの入力がされるまで待機
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                System.out.println("Error: InterruptedException (in 対戦相手の操作情報を受信)");
-            }
-            Random r = new Random();
-            board[r.nextInt(ROW)][r.nextInt(ROW)] = r.nextInt(2) + 1; */            
-        }catch(IOException e){
+
+        }catch(Exception e){
         }
+        
         return opponentNextOp;  //相手の操作の種類を戻り値として返す
     }
 
@@ -351,16 +373,14 @@ public class Client extends JFrame implements ActionListener {
                     break;
                 }
             }else {// それ以外（=マスがクリックされた）なら、その情報を Othello クラス側に送って盤面チェック・盤面計算
-                placeX = Integer.parseInt(command.substring(0, 1));
-                placeY = Integer.parseInt(command.substring(2, 3));
+                placeY = Integer.parseInt(command.substring(0, 1));
+                placeX = Integer.parseInt(command.substring(2, 3));
                 nextOp = 0;// 操作の記憶変数を0にする（石を置く、という操作）
-                Othello myOthello = new Othello(placeX, placeY); //盤面計算のために Othello インスタンスを作成
+                
 
-                //テスト用
-
-                if(true) {// 指定された場所に石が置けるかを判定 //othello1.checkBoard(x, y, myColor)
+                if(myOthello.checkBoard(placeX, placeY, myColor)) {// 指定された場所に石が置けるかを判定
                     // 実際に Othello クラスで石を置いて盤面計算してもらう
-                    //board = myOthello.calcBoard(placeX,placeY,myColor);
+                    board = myOthello.calcBoard(placeX,placeY,myColor);
                     break;
                 }
             }
@@ -398,9 +418,8 @@ public class Client extends JFrame implements ActionListener {
     /* 対戦終了確認 工数:0.5 進捗:0.25 */
     public boolean checkGameEnd(int x) {
         // 白黒双方が石を置けるかの情報をOthelloクラスから受け取り、どちらも置けない場合は対戦終了(trueを返す)
-        Othello othello1 = new Othello(0, 0);   //※ここで指定する座標(0,0)は関係ない
-        boolean whiteMovable = true;//othello1.searchBoard(board,1);
-        boolean blackMovable = true;//othello1.searchBoard(board,2);
+        boolean whiteMovable = myOthello.searchBoard(board,1);
+        boolean blackMovable = myOthello.searchBoard(board,2);
         if (!whiteMovable & !blackMovable)
             return true;
         else
@@ -417,6 +436,7 @@ public class Client extends JFrame implements ActionListener {
     /* 勝敗分を表示 工数:3 進捗:3 */
     // 戻り値boolean（再戦するかどうかの選択）
     public boolean displayResult(int gameResult) {
+        System.out.println("gameResult = "+gameResult+", ");
         updateTextArea(1, "ゲーム終了！");
         // 3秒待機
         try {
@@ -429,10 +449,8 @@ public class Client extends JFrame implements ActionListener {
         //相手の石の色を計算
         opponentColor = myColor % 2 + 1; //自分の色でないほうを相手の石の色とする
         //対戦結果を描画するコンポーネント
-        //JLabel myStoneNum = new JLabel(Integer.toString(countStone(board,myColor)));
-        JLabel myStoneNum = new JLabel(Integer.toString(20));
-        //JLabel opponentStoneNum = new JLabel(Integer.toString(countStone(board,opponentColor)),SwingConstants.RIGHT);
-        JLabel opponentStoneNum = new JLabel(Integer.toString(31),SwingConstants.RIGHT);
+        JLabel myStoneNum = new JLabel(Integer.toString(countStone(board,myColor)));
+        JLabel opponentStoneNum = new JLabel(Integer.toString(countStone(board,opponentColor)),SwingConstants.RIGHT);
         JLabel myNameLabel = new JLabel(myName,SwingConstants.CENTER);
         JLabel opponentNameLabel = new JLabel(opponentName,SwingConstants.CENTER);
         JLabel vsLabel = new JLabel("vs");
@@ -488,6 +506,8 @@ public class Client extends JFrame implements ActionListener {
         } catch (InterruptedException e) {
             System.out.println("Error: InterruptedException (勝敗分を表示)");
         }
+        //今表示されているものをすべて取り除く
+        c.removeAll();
         // 押されたボタンによって分岐
         if(command == "rematch") return true;
         else if(command == "rematch") return false;
@@ -496,6 +516,7 @@ public class Client extends JFrame implements ActionListener {
 
     /*対戦成績表示　工数:3　進捗:2*/
     public void displayGameRecord(){
+
         //対戦成績をサーバから要求
         try{
             writer.println("record");
@@ -566,27 +587,33 @@ public class Client extends JFrame implements ActionListener {
         System.out.println("マウスがクリックされました(ActionPerformed)。押されたボタンは " + command + "です。");// テスト用に標準出力
     }
 
-    /* main（ここからスタート） 工数: 1 進捗: 0.5 */
+    /* main（ここからスタート） */
     public static void main(String args[]) {
         int turn;
         boolean rematch;
         Client tc = new Client();// クライアントのインスタンス作成
+        
+        Player player = new Player();
+        player.setupApp();
+
+        // ここでPlayer側からこちらのユーザ名・相手側のユーザ名・先手後手の情報を取得する
+        // ひとまず仮にこちら側がルームを作ったことにしておく
+        tc.myName = "さどゆう";//自分のユーザ名
+        tc.opponentName = "Player001";//相手のユーザ名
+        tc.firstMove = true;//先手後手（trueなら自分が先手、falseなら自分が後手）
 
         tc.setVisible(true);
-
-        //サーバへの接続
-        tc.connectServer();
-              
         // ループ
         while (true) {
             int opponentNextOp = 0;
-            // ルーム作成画面などをここに
-            // 注:どちらが白でどちらが黒かをmyColor, opponentColorに記憶すること
-            // ひとまず仮にこちら側がルームを作ったことにしておく
-            turn = 0;
-
-            System.out.println("ログイン結果: " + tc.loginInfoAccept("123","abc"));
-            //System.out.println("ルーム作成結果: " + tc.acceptRoomID(0));
+            //先手・後手の情報（firstMove）をもとに最初の手番と双方の石の色を決定
+            if(tc.firstMove) {
+                turn = 0;
+                tc.myColor = 1;
+            }else{
+                turn = 1;
+                tc.opponentColor = 2;
+            }
 
             while (true) {
                 // 対戦開始
@@ -610,6 +637,7 @@ public class Client extends JFrame implements ActionListener {
                 // 対戦終了
                 tc.opponentColor = tc.myColor % 2 + 1; //自分の色でないほうを相手の石の色とする
                 int gameResult;
+                System.out.println("opponentNextOp = "+opponentNextOp);
                 //対戦結果を判定
                 //どちらかが途中で投了した→相手の勝ち　そうでなければ石の数を数え、多い方の勝ちとする
                 if(tc.nextOp == 1) gameResult = 4;//自分の投了による負け
@@ -619,12 +647,9 @@ public class Client extends JFrame implements ActionListener {
                 else gameResult = 2;//引き分け
                 //対戦結果を送信
                 tc.sendGameResult(gameResult);
-                rematch = tc.displayResult(0);// 対戦結果を表示し、再戦するかの選択を受け付ける
-
-                
+                rematch = tc.displayResult(gameResult);// 対戦結果を表示し、再戦するかの選択を受け付ける
             }
         }
-        
     }
 }
 
