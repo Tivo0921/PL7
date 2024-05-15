@@ -1,6 +1,5 @@
 //クライアントプログラム 担当: さどゆう
 
-//現在: 勝敗分の表示部分を作成完了（次回: ボタンを押したときの挙動を作るところから）
 
 import javax.swing.*;
 import java.awt.*;
@@ -18,15 +17,7 @@ public class Client extends JFrame implements ActionListener {
     String playerName = new String();
     String playerID = new String();
     String password = new String();
-    boolean loginSuccess = false;
-    int[][] gameRecord = new int[1][3];
-    JButton viewExit = new JButton();
-    int roomID = 0;
-    boolean matchSuccess = false;
-    boolean winFlag = false;
-    boolean drawFlag = false;
     boolean firstMove; // 0なら自分の手番、1（0以外）なら相手の手番
-    boolean deleteRoom = false;
     // 定数
     static final int ROW = 8; // オセロ盤の行数・列数
     // プライベート変数
@@ -79,7 +70,6 @@ public class Client extends JFrame implements ActionListener {
             writer = new PrintWriter(socket.getOutputStream(), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             // 接続の確認
-            writer.println("Client connected");// サーバに接続完了の旨を通知
             System.out.println(reader.readLine());// サーバからメッセージを受け取る
             return true;
         } catch (Exception e) {
@@ -145,7 +135,7 @@ public class Client extends JFrame implements ActionListener {
     public boolean loginInfoAccept(String playerName, String password) {
         //受け取った情報をそのままソケット通信で送る
         //※その情報が存在しない場合は新たなユーザとして登録する
-        writer.println("Login:" + playerName + "," + password);
+        writer.println(playerName + "," + password);
         return true;
     }
 
@@ -161,9 +151,6 @@ public class Client extends JFrame implements ActionListener {
         }catch(IOException e){
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
-
-        System.out.println("message = " + message);
-        
         return Integer.parseInt(message);
     }
 
@@ -180,7 +167,7 @@ public class Client extends JFrame implements ActionListener {
 
     /*指定したルームの削除*/
     public void deleteRoomID(){
-        System.out.println("部屋を削除しました");
+        writer.println("delete");
     }
 
     /* サーバに接続 工数:0.25 進捗:0.25 */
@@ -324,7 +311,7 @@ public class Client extends JFrame implements ActionListener {
             try {
                 Thread.sleep(1500);
             } catch (InterruptedException e) {
-                System.out.println("Error: InterruptedException (in 再接続選択)");
+                System.out.println("Error: InterruptedException (in 対戦相手の操作情報を受信)");
             }
             Random r = new Random();
             board[r.nextInt(ROW)][r.nextInt(ROW)] = r.nextInt(2) + 1; */            
@@ -422,9 +409,9 @@ public class Client extends JFrame implements ActionListener {
 
     /* 対戦結果をサーバに送信 工数: 0.25 進捗:0 */
     public void sendGameResult(int result) {
-        //writer.println("match end");
+        writer.println("match end");
         //勝ちなら0、負けなら1、引き分けなら2を送信
-        //writer.println(playerID + "," + result);
+        writer.println(playerID + "," + result);
     }
 
     /* 勝敗分を表示 工数:3 進捗:3 */
@@ -574,12 +561,6 @@ public class Client extends JFrame implements ActionListener {
         JOptionPane.showMessageDialog(this, label);
     }
 
-    /* 投了受付 工数:0.5 進捗:0 */
-    public int acceptResign(boolean x) {
-
-        return 0;
-    }
-
     public void actionPerformed(ActionEvent e) {
         command = e.getActionCommand();// クリックしたオブジェクトを取得し、ボタンの名前を取り出す
         System.out.println("マウスがクリックされました(ActionPerformed)。押されたボタンは " + command + "です。");// テスト用に標準出力
@@ -590,11 +571,12 @@ public class Client extends JFrame implements ActionListener {
         int turn;
         boolean rematch;
         Client tc = new Client();// クライアントのインスタンス作成
+
         tc.setVisible(true);
 
         //サーバへの接続
         tc.connectServer();
-        
+              
         // ループ
         while (true) {
             int opponentNextOp = 0;
@@ -638,8 +620,11 @@ public class Client extends JFrame implements ActionListener {
                 //対戦結果を送信
                 tc.sendGameResult(gameResult);
                 rematch = tc.displayResult(0);// 対戦結果を表示し、再戦するかの選択を受け付ける
+
+                
             }
         }
+        
     }
 }
 
