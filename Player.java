@@ -44,6 +44,8 @@ public class Player extends JFrame {
         JPanel connectionPanel = new JPanel(); // 全体パネル
         JPanel connectionPanelTop = new JPanel(); // 全体パネル>上部パネル
         JPanel connectionPanelCenter = new JPanel(); // 全体パネル>中央部パネル
+        JPanel centerPanelPlayer = new JPanel(); // 中央部パネル>プレイヤ名入力部パネル
+        JPanel centerPanelPassword = new JPanel(); // 中央部パネル>パスワード入力部パネル
         JPanel connectionPanelBottom = new JPanel(); // 全体パネル>下部パネル
         JLabel loginMessage = new JLabel("プレイヤ情報を入力してください"); // 主メッセージ
         JLabel cautionMessage = new JLabel("パスワード又はプレイヤ名が間違っています"); // エラー時メッセージ
@@ -55,6 +57,8 @@ public class Player extends JFrame {
         JButton ok = new JButton("OK"); // OK(入力情報送信)ボタン
 
         Container contentPane1 = frame.getContentPane();
+        frame.setBounds(450, 300, 600, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // クライアントプログラムから接続要求メソッドを呼び出し
         boolean connection = client.connectDemand(); // テスト用にコメントアウト
@@ -72,9 +76,7 @@ public class Player extends JFrame {
                     password = passwordField.getText();
                     // クライアントプログラムからログイン可否を受け取る
                     loginAccept = client.loginInfoAccept(playerName, password); // テスト用にコメントアウト
-                    System.out.println("クライアントプログラムからログイン可否を受け取る");
                     command = "1";
-                    System.out.println(command);
                     // ログイン情報が受け付けられなかった場合はメッセージを表示
                     // if (!loginAccept) {
                     //     cautionMessage.setForeground(Color.red);
@@ -97,42 +99,39 @@ public class Player extends JFrame {
         // ログイン情報が受け付けられるまで繰り返し
             // フレーム設定
             frame.setSize(500, 300);
-            System.out.println("フレーム設定");
             // 全体のパネル設定(縦に[メッセージ部分のパネル]と[入力部分のパネル]と[ボタン部分のパネル]を並べる)
             connectionPanel.setLayout(new GridLayout(3, 1));
-            System.out.println("全体のパネル設定");
-            // メッセージ部分のパネル設定(縦に各種メッセージを並べる)
-            connectionPanelTop.setLayout(new GridLayout(1, 2));
-            System.out.println("メッセージ部分のパネル設定");
-            // 入力部分のパネル設定(2×2で[ラベル]と[入力部]をプレイヤ名とパスワードそれぞれ順番に並べる)
-            connectionPanelCenter.setLayout(new GridLayout(2, 2));
-            System.out.println("入力部分のパネル設定");
+            // メッセージ部分のパネル設定
+            connectionPanelTop.setLayout(new FlowLayout());
+            // メッセージ部分のラベル設定(上に余白を入れる)
+            loginMessage.setBorder(BorderFactory.createEmptyBorder(30,30,0,30));
+            // 入力部分のパネル設定
+            connectionPanelCenter.setLayout(new GridLayout(2, 1));
+            // プレイヤ名入力部分のパネル設定
+            centerPanelPlayer.setLayout(new FlowLayout());
+            // プレイヤ名入力部分のパネル設定
+            centerPanelPassword.setLayout(new FlowLayout());
             // ボタン部分のパネル設定(横に[OKボタン]と[終了ボタン]を並べる
             connectionPanelBottom.setLayout(new FlowLayout());
-            System.out.println("ボタン部分のパネル設定");
             // ボタン部分の設定
             ok.addActionListener(connectAction);
             ok.setActionCommand("1");
             exit.addActionListener(connectAction);
             exit.setActionCommand("2");
-            System.out.println("ボタン部分の設定");
             // 各パーツ配置
             connectionPanelTop.add(loginMessage);
-            System.out.println("ログインメッセージ表示");
-            connectionPanelCenter.add(playerNameLabel);
-            connectionPanelCenter.add(playerNameField);
-            System.out.println("プレイヤ名部分表示");
-            connectionPanelCenter.add(passwordLabel);
-            connectionPanelCenter.add(passwordField);
-            System.out.println("パスワード部分表示");
+            connectionPanelCenter.add(centerPanelPlayer);
+            connectionPanelCenter.add(centerPanelPassword);
+            centerPanelPlayer.add(playerNameLabel);
+            centerPanelPlayer.add(playerNameField);
+            centerPanelPassword.add(passwordLabel);
+            centerPanelPassword.add(passwordField);
             connectionPanelBottom.add(ok);
             connectionPanelBottom.add(exit);
-            System.out.println("ボタン部分表示");
             connectionPanel.add(connectionPanelTop);
             connectionPanel.add(connectionPanelCenter);
             connectionPanel.add(connectionPanelBottom);
             contentPane1.add(connectionPanel, BorderLayout.NORTH);
-            System.out.println("全体表示");
             frame.setVisible(true);
         
         // ボタンの入力がされるまで待機
@@ -148,7 +147,6 @@ public class Player extends JFrame {
 
         // 結果によって分岐
         if (command.equals("1")) {
-            System.out.println("再描画");
             contentPane1.removeAll();
             contentPane1.repaint();
         }
@@ -171,9 +169,6 @@ public class Player extends JFrame {
 
         command = "";
 
-        setBounds(100, 100, 600, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         JFrame matchFrame = new JFrame("マッチ画面"); // フレーム
         JPanel mainPanel = new JPanel(); // 全体を覆うパネル
         JPanel mainPanelHead = new JPanel(); // 上部を覆うパネル
@@ -189,6 +184,8 @@ public class Player extends JFrame {
         JLabel cautionMessage = new JLabel("新規ルームIDを作成しました");
 
         Container contentPane2 = matchFrame.getContentPane();
+        matchFrame.setBounds(450, 200, 600, 400);
+        matchFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         ActionListener matchAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -225,7 +222,7 @@ public class Player extends JFrame {
 
         // ルームIDが受理されるまで繰り返し
             // マッチ画面フレーム
-            matchFrame.setSize(500,300);
+            matchFrame.setSize(500,500);
             // 全体パネル
             mainPanel.setLayout(new GridLayout(2, 1));
             // 全体パネル>上部パネル
@@ -253,7 +250,6 @@ public class Player extends JFrame {
             mainPanel.add(mainPanelHead);
             mainPanel.add(mainPanelBody);
             contentPane2.add(mainPanel, BorderLayout.NORTH);
-            System.out.println("全体表示");
             matchFrame.setVisible(true);
         
         // ボタンの入力がされるまで待機
@@ -291,6 +287,7 @@ public class Player extends JFrame {
     // 対戦成績の閲覧
     public void displayPlayRecord() {
         // クライアントプログラムで対戦成績を描画
+        System.out.println("対戦成績閲覧を選択");
         client.displayGameRecord(); // テスト用にコメントアウト
         System.out.println("クライアントプログラムで対戦成績を描画");
     }
@@ -307,9 +304,6 @@ public class Player extends JFrame {
             System.out.println("クライアントプログラムからルームIDを取得");
         }
 
-        setBounds(100, 100, 600, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         JFrame roomFrame = new JFrame("ルーム作成"); // ルーム作成画面
         JPanel roomPanel = new JPanel(); // 全体を覆うパネル
         JPanel roomPanelTop = new JPanel(); // 上部パネル(キャンセルボタンをつける)
@@ -320,6 +314,9 @@ public class Player extends JFrame {
         JLabel desuLabel = new JLabel("です");
         JLabel waiting = new JLabel("マッチ待機中");
         JButton exitRoom = new JButton("キャンセル");
+
+        roomFrame.setBounds(450, 300, 600, 400);
+        roomFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         ActionListener makeRoomAction = new ActionListener(){
             public void actionPerformed(ActionEvent e) {
