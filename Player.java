@@ -310,9 +310,8 @@ public class Player extends JFrame {
 
         JFrame roomFrame = new JFrame("ルーム作成"); // ルーム作成画面
         JPanel roomPanel = new JPanel(); // 全体を覆うパネル
-        JPanel roomPanelTop = new JPanel(); // 上部パネル(キャンセルボタンをつける)
-        JPanel roomPanelCenter = new JPanel(); // 中央部パネル(文字&ボタンを入れる)
         JPanel roomIdPanel = new JPanel(); // ルームID表示部パネル
+        JPanel roomPanelTop = new JPanel(); // 上部パネル
         JLabel roomIdIs = new JLabel("あなたのルームIDは");
         JLabel roomIdLabel = new JLabel(Integer.toString(roomId));
         JLabel desuLabel = new JLabel("です");
@@ -336,32 +335,32 @@ public class Player extends JFrame {
         // ルーム作成画面のフレーム
         roomFrame.setSize(500,300);
         // 画面全体のパネル
-        roomPanel.setLayout(new GridLayout(2, 1));
-        // 画面上部のパネル
+        roomPanel.setLayout(new GridLayout(4, 1));
+        // 上部パネル
         roomPanelTop.setLayout(new BorderLayout());
-        // 画面中央部のパネル
-        roomPanelCenter.setLayout(new GridLayout(3, 1));
         // ルームID表示部のパネル
-        roomIdPanel.setLayout(new GridLayout(1, 2));
+        roomIdPanel.setLayout(new FlowLayout());
         // ルームIDは少し大きく表示する
         roomIdLabel.setFont(new Font("Century", Font.BOLD, 30));
         // マッチ待機中表示はグレーにする
         waiting.setForeground(Color.gray);
+        waiting.setHorizontalAlignment(JLabel.CENTER);
         // [キャンセルボタン]の設定
         exitRoom.addActionListener(makeRoomAction);
         exitRoom.setActionCommand("");
+        // ルームIDは」の表示
+        roomIdIs.setHorizontalAlignment(JLabel.CENTER);
 
         // 配置
         roomPanel.add(roomPanelTop);
-        roomPanel.add(roomPanelCenter);
-        roomPanelTop.add(exitRoom,BorderLayout.WEST);
-        roomPanelCenter.add(roomIdIs);
-        roomPanelCenter.add(roomIdPanel);
-        roomPanelCenter.add(waiting);
+        roomPanel.add(roomIdIs);
+        roomPanel.add(roomIdPanel);
+        roomPanel.add(waiting);
+        roomPanelTop.add(exitRoom, BorderLayout.EAST);
         roomIdPanel.add(roomIdLabel);
         roomIdPanel.add(desuLabel);
         Container contentPane3 = roomFrame.getContentPane();
-        contentPane3.add(roomPanel, BorderLayout.NORTH);
+        contentPane3.add(roomPanel, BorderLayout.CENTER);
         roomFrame.setVisible(true);
 
         // ボタンの入力がされるまで待機
