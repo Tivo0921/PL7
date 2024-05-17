@@ -311,7 +311,7 @@ public class Player extends JFrame {
         JPanel roomIdPanel = new JPanel(); // ルームID表示部パネル
         JPanel roomPanelTop = new JPanel(); // 上部パネル
         JLabel roomIdIs = new JLabel("あなたのルームIDは");
-        JLabel roomIdLabel = new JLabel(Integer.toString(roomId));
+        JLabel roomIdLabel = new JLabel(Integer.toString(inputRoomId));
         JLabel desuLabel = new JLabel("です");
         JLabel waiting = new JLabel("マッチ待機中");
         JButton exitRoom = new JButton("キャンセル");
@@ -391,9 +391,6 @@ public class Player extends JFrame {
     // マッチ確認画面描画
     public void displayMatching() {
 
-        setBounds(100, 100, 600, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         JFrame matchingFrame = new JFrame("対戦相手確認");
         JPanel matchingPanel = new JPanel();
         JPanel opponentPanel = new JPanel();
@@ -402,10 +399,13 @@ public class Player extends JFrame {
         JLabel desuLabel = new JLabel("さんです");
         JButton startGame = new JButton("対戦開始");
 
+        matchingFrame.setBounds(450, 300, 600, 400);
+        matchingFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         // マッチ確認画面のフレーム
         matchingFrame.setSize(500,300);
         // 画面全体のパネル
-        matchingPanel.setLayout(new GridLayout(3, 1));
+        matchingPanel.setLayout(new BorderLayout());
         // 対戦相手表示部パネル
         opponentPanel.setLayout(new FlowLayout());
         // 対戦相手の名前は少し大きく表示する
@@ -418,13 +418,13 @@ public class Player extends JFrame {
         };
         startGame.addActionListener(displayMatchingAction);
         // 配置
-        matchingPanel.add(opponentIs);
-        matchingPanel.add(opponentPanel);
+        matchingPanel.add(opponentIs, BorderLayout.NORTH);
+        matchingPanel.add(opponentPanel, BorderLayout.CENTER);
         opponentPanel.add(opponentName);
         opponentPanel.add(desuLabel);
-        matchingPanel.add(startGame);
+        matchingPanel.add(startGame, BorderLayout.SOUTH);
         Container contentPane4 = matchingFrame.getContentPane();
-        contentPane4.add(matchingPanel, BorderLayout.NORTH);
+        contentPane4.add(matchingPanel, BorderLayout.CENTER);
         matchingFrame.setVisible(true);
         System.out.println("全体表示");
 
