@@ -155,6 +155,7 @@ public class Client extends JFrame implements ActionListener {
         try {
             writer.println("search room");
             writer.println(roomID);
+<<<<<<< HEAD
             // ルームID
             roomID = Integer.parseInt(reader.readLine());
             // ユーザー1のIDを受信
@@ -163,6 +164,14 @@ public class Client extends JFrame implements ActionListener {
             // 先手後手情報の設定
             firstMove = false;
         } catch (IOException e) {
+=======
+            //ルームIDを受信
+            message = reader.readLine();
+            //先手後手情報の設定
+            firstMove = false;
+
+        }catch(IOException e){
+>>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
         return Integer.parseInt(message);
@@ -173,11 +182,19 @@ public class Client extends JFrame implements ActionListener {
         String message = "22222";// テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
         try {
             writer.println("make a room");
+<<<<<<< HEAD
             // ルームIDを受信
             message = reader.readLine();
             // 先手後手情報の設定
             firstMove = true;
         } catch (IOException e) {
+=======
+            //ルームIDを受信
+            message = reader.readLine();
+            //先手後手情報の設定
+            firstMove = true;
+        }catch(IOException e){
+>>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
             System.out.println("Error: IOException (in 作成したルームID受付)");
         }
         System.out.println("roomID = " + message);
@@ -214,6 +231,7 @@ public class Client extends JFrame implements ActionListener {
         return result;
     }
 
+<<<<<<< HEAD
     /* サーバからメッセージを受信し、その内容を返す（上記checkServer...とは違いこちらはメッセージがあると分かっている前提） */
     /* 戻り値: メッセージ受信の有無 */
     public String getServerMessage() {
@@ -225,6 +243,19 @@ public class Client extends JFrame implements ActionListener {
         }
         return message;
     }
+=======
+    /*サーバからメッセージを受信し、その内容を返す（上記checkServer...とは違いこちらはメッセージがあると分かっている前提）*/
+    /*戻り値: メッセージ受信の有無*/
+    public String getServerMessage(){
+        String message;
+        try{
+            message = reader.readLine();//メッセージを受け取って出力
+        }catch(IOException e){
+            message = "";//エラーが起きた場合は空の文字列を返す
+        }
+        return message;
+    }  
+>>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
 
     /* 盤面の初期化 工数:0.25 進捗:0.25 */
     public void initBoard() {
@@ -554,6 +585,7 @@ public class Client extends JFrame implements ActionListener {
             return false;
     }
 
+<<<<<<< HEAD
     /* 対戦成績表示 工数:3 進捗:2 */
     public void displayGameRecord() {
 
@@ -626,7 +658,76 @@ public class Client extends JFrame implements ActionListener {
         }
         myFrame.add(scrollpane, BorderLayout.CENTER); // データをまとめたJScrollPaneをJFrameに貼り付ける
         myFrame.setVisible(true); // 最後にJFrameの表示処理
+=======
+   /*対戦成績表示　工数:3　進捗:2*/
+   public void displayGameRecord(){
+
+    //テスト用の仮データ
+    //String recordString = "0,Aさん,0,5,2,1;0,Bさん,0,5,4,1;0,Cさん,0,10,6,2;0,Dさん,0,5,4,1;0,Eさん,0,5,2,2;0,Fさん,0,1,6,1;0,Gさん,0,5,20,1;0,Hさん,0,4,6,1";
+    String recordString = "";
+
+    //対戦成績をサーバから要求 
+    try{
+        writer.println("View Results");
+        recordString = reader.readLine();
+    }catch(IOException e){
+>>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
     }
+
+    //一列のStringで送られてきたデータを分割していく（セミコロン毎に1人分、カンマ毎に数値区切り）
+    //形式: id,name,pass,win,lose,draw;...（これを人数分繰り返す）
+    //最終的にrecordに格納される
+    String recordString2[] = recordString.split(";");
+    String recordString3[][] = new String[recordString2.length][6];
+    //このうち実際に描画するのは name,win,lose,draw の4つのみ
+    //この4つのうち数値に変換する必要があるのがwin,lose,drawなので、この3つのみ数値に変換する
+    int recordInt[][] = new int[recordString2.length][3];
+    for(int i=0; i<recordString2.length; i++){
+        recordString3[i] = recordString2[i].split(",");
+        recordInt[i][0] = Integer.parseInt(recordString3[i][3]);//winの変換
+        recordInt[i][1] = Integer.parseInt(recordString3[i][4]);//loseの変換
+        recordInt[i][2] = Integer.parseInt(recordString3[i][5]);//drawの変換
+    }
+
+    int num = recordString2.length;//成績のデータ行数（＝人数）
+
+    //JFrameの設定
+    JFrame myFrame = new JFrame("成績閲覧");//作成
+    myFrame.setSize(400,450);//ウィンドウの大きさの設定
+    myFrame.setLayout(null);//レイアウトマネージャは無し（座標を直接指定）
+    //タイトル「対戦成績」の表示
+    JLabel title = new JLabel("対戦成績");//作成
+    title.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 25));//フォントの設定
+    title.setBounds(140, 0, 200, 40); //境界の設定
+    myFrame.add(title);//ペインに追加
+    //成績本体を表示するためのJPanelの設定
+    JPanel p = new JPanel();//作成
+    p.setPreferredSize(new Dimension(350, 22*num));//サイズの調整（縦はデータの数に応じて大きさを変える）
+    //JScrollPaneの設定（pを制御する）
+    JScrollPane scrollpane = new JScrollPane(p);//作成
+    scrollpane.setBounds(10, 50, 370, 350); //境界の設定
+    //成績本体を表示するためのJTextFieldの設定
+    JTextField recordText[][] = new JTextField[num][3];
+    //対戦成績本体（1行毎にループを用いてpに貼り付けていく）
+    for(int i=0; i<num; i++){
+        recordText[i][0] = new JTextField(recordString3[i][1],19); //テキストエリア作成
+        recordText[i][1] = new JTextField(Integer.toString(recordInt[i][0]) + "勝" + 
+                                          Integer.toString(recordInt[i][1]) + "敗" +
+                                          Integer.toString(recordInt[i][2]) + "分" ,15);
+        recordText[i][2] = new JTextField("投了数" + Integer.toString(recordInt[i][0]+recordInt[i][1]+recordInt[i][2]),10);
+        recordText[i][0].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13)); //フォントの設定
+        recordText[i][1].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+        recordText[i][2].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+        recordText[i][0].setEditable(false); //編集不可能にする
+        recordText[i][1].setEditable(false);
+        recordText[i][2].setEditable(false);
+        p.add(recordText[i][0]);
+        p.add(recordText[i][1]);
+        p.add(recordText[i][2]);
+    }
+    myFrame.add(scrollpane,BorderLayout.CENTER); //データをまとめたJScrollPaneをJFrameに貼り付ける
+    myFrame.setVisible(true); //最後にJFrameの表示処理
+}
 
     /* 切断のメッセージを表示 工数:0.25 進捗:0 */
     public void displayDisconnectionMessage() {
@@ -641,7 +742,11 @@ public class Client extends JFrame implements ActionListener {
 
         // 事前にPlayer側からこちらのユーザ名・相手側のユーザ名・先手後手の情報を受け取っておく
 
+<<<<<<< HEAD
         opponentName = "Player001";// 相手のユーザ名
+=======
+        opponentName = "Player001";//相手のユーザ名
+>>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
 
         setVisible(true);
         while (true) {

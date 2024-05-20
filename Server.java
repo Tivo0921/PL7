@@ -196,6 +196,7 @@ class ClientProcThread extends Thread {
                 System.out.println("Received from client No." + number + "(" + myName + "), Messages: " + str);
                 if (str != null) {// このソケット（バッファ）に入力があるかをチェック
                     Server.SendAll(str, myName, number);// サーバに来たメッセージは接続しているクライアント全員に配る
+                    Server.SendAll(str, myName, number);// サーバに来たメッセージは接続しているクライアント全員に配る
                 }
             }
         } catch (Exception e) {
@@ -338,8 +339,8 @@ class Server {
         for (int i = num - 1; i <= num; i++) {
             if (flag[i] == true) {
                 out[i].println(str);
-                out[i].flush();// バッファをはき出す＝＞バッファにある全てのデータをすぐに送信する
-                System.out.println("Send messages to client No." + i);
+                out[i].flush();//バッファをはき出す＝＞バッファにある全てのデータをすぐに送信する
+                System.out.println("Send messages to client No."+i);
             }
         }
     }
