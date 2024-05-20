@@ -291,7 +291,7 @@ class ServerDriver {
         out = new PrintWriter[maxConnection];
         myClientProcThread = new ClientProcThread1[maxConnection];
 
-        Server.setDirectoryPath("C:/Users/shun0/university/PL7");
+        setDirectoryPath("C:/Users/shun0/university/PL7");
 
         int n = 1;
 
