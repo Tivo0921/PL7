@@ -243,7 +243,7 @@ public class Player extends JFrame {
                 roomId = Integer.parseInt(roomIdField.getText());
                 System.out.println(roomId+"が入力された");
                 // クライアントプログラムから該当ルームの有無を受け取る
-                inputRoomId = client.acceptRoomID(roomId); // テスト用にコメントアウト
+                inputRoomId = client.acceptRoomID(roomId);
                 System.out.println(inputRoomId+"でルームIDが返された");
                 // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
                 if (inputRoomId!=roomId) {
@@ -255,6 +255,9 @@ public class Player extends JFrame {
                     System.out.println("ルームが存在しなかったため新規ルームを作成");
                 }else{
                     successMatching=true;
+                    System.out.println("サーバからの相手のユーザ名情報の送信待ち");
+                    client.opponentName = client.getServerMessage();//今度は相手のユーザ名が送られてくるのでそれを受け取って反映
+                    System.out.println("サーバからの相手のユーザ名情報を受け取りました");
                     System.out.println(inputRoomId+"のルームがあったので入室");
                 }
                 }
@@ -367,9 +370,11 @@ public class Player extends JFrame {
             command = "";
             while (command == "") {
                 Thread.sleep(1000);
-                if(client.checkServerMessage()){//クライアントプログラムが対戦相手が現れた旨のメッセージを受け取ったら
+                if(client.checkServerMessage()){//クライアントプログラムが対戦相手が現れた旨のメッセージを受け取った場合
+                    System.out.println("サーバからの相手のユーザ名情報の送信待ち");
+                    client.opponentName = client.getServerMessage();//今度は相手のユーザ名が送られてくるのでそれを受け取って反映
+                    System.out.println("サーバからの相手のユーザ名情報を受け取りました");
                     roomFrame.setVisible(false);
-                    client.firstMove = true; //自分が先手であることをクライアントに通知
                     System.out.println("display呼び出しB");
                     displayMatching();//マッチ確認画面に移行
                     break;

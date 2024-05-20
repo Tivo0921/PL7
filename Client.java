@@ -20,6 +20,8 @@ public class Client extends JFrame implements ActionListener {
     String playerID = new String();
     String password = new String();
     boolean firstMove = true; // 先手か後手か。trueなら自分が先手、falseなら自分が後手
+    String myName;// 自分のプレイヤ名
+    String opponentName;// 相手のプレイヤ名
     // 定数
     static final int ROW = 8; // オセロ盤の行数・列数
     // プライベート変数
@@ -29,8 +31,6 @@ public class Client extends JFrame implements ActionListener {
     private ImageIcon blackIcon, whiteIcon, boardIcon; // アイコン
     private Container c; // ペインを取得するコンテナ
     private int[][] board = new int[ROW][ROW]; // 現在の盤面
-    private String myName;// 自分のプレイヤ名
-    private String opponentName;// 相手のプレイヤ名
     private int myColor = 1;// 自分の石の色
     private int opponentColor = 2;// 相手の石の色
     private JTextArea stoneInfoText; // 石の数を表示するテキストエリア
@@ -151,25 +151,42 @@ public class Client extends JFrame implements ActionListener {
         //引数に入力したルームが存在するかをサーバに問い合わせ、その結果を戻り値として返す
         //存在しない場合はそのルームを作成する
         String message = "11111";//テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
+        String messageSplit[] = new String[2];
         try{
             writer.println(roomID);
+            //ルームIDと先手後手情報を同時受信
             message = reader.readLine();
-            message = message.replaceAll("[^0-9]", "");            
+            //message = message.replaceAll("[^0-9]", "");
+            //メッセージ形式: "[ルームID],[先手後手情報(1なら先手、2なら後手)]"
+            //受け取ったメッセージをカンマで区切って分割（ルームIDと先手後手情報）
+            messageSplit = message.split(",");
+            //先手後手情報の設定
+            if(messageSplit[1].equals("1"))    firstMove = true;
+            else if(messageSplit[1].equals("2")) firstMove = false;
+
         }catch(IOException e){
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
-        return Integer.parseInt(message);
+        return Integer.parseInt(messageSplit[0]);
     }
 
     /*作成したルームID取得*/
     public int getRoomID(){
         String message = "22222";//テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
+        String messageSplit[] = new String[2];
         try{
             writer.println("make a room");
+            //ルームIDと先手後手情報を同時受信
             message = reader.readLine();
+            //メッセージ形式: "[ルームID],[先手後手情報(1なら先手、2なら後手)]"
+            //受け取ったメッセージをカンマで区切って分割（ルームIDと先手後手情報）
+            messageSplit = message.split(",");
+            //先手後手情報の設定
+            if(messageSplit[1].equals("1"))    firstMove = true;
+            else if(messageSplit[1].equals("2")) firstMove = false;
         }catch(IOException e){
         }
-        return Integer.parseInt(message);
+        return Integer.parseInt(messageSplit[0]);
     }
 
     /*指定したルームの削除*/
@@ -201,7 +218,18 @@ public class Client extends JFrame implements ActionListener {
         }
         return result;
     }
-        
+
+    /*サーバからメッセージを受信し、その内容を返す（上記checkServer...とは違いこちらはメッセージがあると分かっている前提）*/
+    /*戻り値: メッセージ受信の有無*/
+    public String getServerMessage(){
+        String message;
+        try{
+            message = reader.readLine();//メッセージを受け取って出力
+        }catch(IOException e){
+            message = "";//エラーが起きた場合は空の文字列を返す
+        }
+        return message;
+    }  
 
     /* 盤面の初期化 工数:0.25 進捗:0.25 */
     public void initBoard() {
@@ -609,7 +637,6 @@ public class Client extends JFrame implements ActionListener {
         // 事前にPlayer側からこちらのユーザ名・相手側のユーザ名・先手後手の情報を受け取っておく
 
         opponentName = "Player001";//相手のユーザ名
-        firstMove = true;//先手後手（trueなら自分が先手、falseなら自分が後手）
 
         setVisible(true);
         while (true) {
