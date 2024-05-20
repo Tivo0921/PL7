@@ -84,7 +84,7 @@ class ClientProcThread extends Thread {
                             myOut.flush();
                             break;
                         } else if (connect.equals("delete")) {
-                            Server.deleteRoom(Integer.parseInt(myRoom));
+                            Server.deleteRoom(roomId);
                             break;
                         }
                     }
@@ -121,7 +121,7 @@ class ClientProcThread extends Thread {
                             myOut.flush();
                             break;
                         } else if (connect.equals("delete")) {
-                            Server.deleteRoom(Integer.parseInt(myRoom));
+                            Server.deleteRoom(roomId);
                             break;
                         }
                     }
@@ -223,6 +223,8 @@ class Server {
             List<String> content = new ArrayList<>();
             content.add(id + "," + myName + "," + myPass);
             writeToFile(fileName, content, true);
+        } else {
+            System.out.println("ID already exists");
         }
     }
 
@@ -366,8 +368,10 @@ class Server {
         }
         if (!roomIdExists) {
             List<String> content = new ArrayList<>();
-            content.add(roomId + "," + user1 + "," + user2);
+            content.add(roomId + "," + user1);
             writeToFile(fileName, content, true);
+        } else {
+            System.out.println("Room ID already exists");
         }
     }
 
@@ -405,7 +409,7 @@ class Server {
 
         for (String line : fileContent) {
             String[] parts = line.split(",");
-            if (parts.length != 3) {
+            if (parts.length != 2) { // 池田が加筆
                 continue;
             }
             int roomId = Integer.parseInt(parts[0]);
@@ -415,10 +419,9 @@ class Server {
         int newRoomId = 1;
         while (roomIds.contains(newRoomId)) {
             newRoomId++;
+            System.out.println("ルームIDを" + newRoomId + "にしました");
         }
-
         writeRoomID(newRoomId, user1, "");
-
         System.out.println("Created room with ID: " + newRoomId + " for user: " + user1);
         return newRoomId;
     }
@@ -430,7 +433,7 @@ class Server {
 
         for (int i = 0; i < fileContent.size(); i++) {
             String[] parts = fileContent.get(i).split(",");
-            if (parts.length != 3) {
+            if (parts.length != 2) { // 池田が加筆
                 continue;
             }
             int currentRoomId = Integer.parseInt(parts[0]);
@@ -537,7 +540,7 @@ class Server {
         out = new PrintWriter[maxConnection];
         myClientProcThread = new ClientProcThread[maxConnection];
 
-        setDirectoryPath("C:/Users/kou15/PL7");
+        setDirectoryPath("C:/Users/shun0/university/PL7");
 
         int n = 1;
 
