@@ -151,42 +151,32 @@ public class Client extends JFrame implements ActionListener {
         //引数に入力したルームが存在するかをサーバに問い合わせ、その結果を戻り値として返す
         //存在しない場合はそのルームを作成する
         String message = "11111";//テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
-        String messageSplit[] = new String[2];
         try{
             writer.println(roomID);
-            //ルームIDと先手後手情報を同時受信
+            //ルームIDを受信
             message = reader.readLine();
-            //message = message.replaceAll("[^0-9]", "");
-            //メッセージ形式: "[ルームID],[先手後手情報(1なら先手、2なら後手)]"
-            //受け取ったメッセージをカンマで区切って分割（ルームIDと先手後手情報）
-            messageSplit = message.split(",");
             //先手後手情報の設定
-            if(messageSplit[1].equals("1"))    firstMove = true;
-            else if(messageSplit[1].equals("2")) firstMove = false;
+            firstMove = false;
 
         }catch(IOException e){
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
-        return Integer.parseInt(messageSplit[0]);
+        return Integer.parseInt(message);
     }
 
     /*作成したルームID取得*/
     public int getRoomID(){
         String message = "22222";//テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
-        String messageSplit[] = new String[2];
         try{
             writer.println("make a room");
-            //ルームIDと先手後手情報を同時受信
+            //ルームIDを受信
             message = reader.readLine();
-            //メッセージ形式: "[ルームID],[先手後手情報(1なら先手、2なら後手)]"
-            //受け取ったメッセージをカンマで区切って分割（ルームIDと先手後手情報）
-            messageSplit = message.split(",");
             //先手後手情報の設定
-            if(messageSplit[1].equals("1"))    firstMove = true;
-            else if(messageSplit[1].equals("2")) firstMove = false;
+            firstMove = true;
         }catch(IOException e){
+            System.out.println("Error: IOException (in 作成したルームID受付)");
         }
-        return Integer.parseInt(messageSplit[0]);
+        return Integer.parseInt(message);
     }
 
     /*指定したルームの削除*/
@@ -553,75 +543,74 @@ public class Client extends JFrame implements ActionListener {
         else return false;
     }
 
-    /*対戦成績表示　工数:3　進捗:2*/
-    public void displayGameRecord(){
+   /*対戦成績表示　工数:3　進捗:2*/
+   public void displayGameRecord(){
 
-        //テスト用の仮データ
-        //String recordString = "1,2,3;4,5,6;7,8,9;10,11,12;50,50,400;70,70,1120";
-        String recordString = "";
+    //テスト用の仮データ
+    //String recordString = "0,Aさん,0,5,2,1;0,Bさん,0,5,4,1;0,Cさん,0,10,6,2;0,Dさん,0,5,4,1;0,Eさん,0,5,2,2;0,Fさん,0,1,6,1;0,Gさん,0,5,20,1;0,Hさん,0,4,6,1";
+    String recordString = "";
 
-        //対戦成績をサーバから要求
-        try{
-            writer.println("View Results");
-            recordString = reader.readLine();
-        }catch(IOException e){
-        }
-
-        //一列のStringで送られてきたデータを分割していく（セミコロン毎に1人分、カンマ毎に数値区切り）
-        //最終的にrecordに格納される
-        String recordString2[] = recordString.split(";");
-        String recordString3[][] = new String[recordString2.length][3];
-        int record[][] = new int[recordString2.length][3];
-        for(int i=0; i<recordString2.length; i++){
-            recordString3[i] = recordString2[i].split(",");
-            for(int j=0; j<3; j++)  record[i][j] = Integer.parseInt(recordString3[i][j]);
-        }
-
-        String[] recordName = {"Player001","Player002",
-        "Player003","Player004",
-        "Player005","Player006",
-        "Player007","Player008",
-        "Player009","Player010",
-        "Player011","Player012"};
-        int num = 6;//成績のデータ行数（＝人数）
-
-        //JFrameの設定
-        JFrame myFrame = new JFrame("成績閲覧");//作成
-        myFrame.setSize(400,450);//ウィンドウの大きさの設定
-        myFrame.setLayout(null);//レイアウトマネージャは無し（座標を直接指定）
-        //タイトル「対戦成績」の表示
-        JLabel title = new JLabel("対戦成績");//作成
-        title.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 25));//フォントの設定
-        title.setBounds(140, 0, 200, 40); //境界の設定
-        myFrame.add(title);//ペインに追加
-        //成績本体を表示するためのJPanelの設定
-        JPanel p = new JPanel();//作成
-        p.setPreferredSize(new Dimension(350, 22*num));//サイズの調整（縦はデータの数に応じて大きさを変える）
-        //JScrollPaneの設定（pを制御する）
-        JScrollPane scrollpane = new JScrollPane(p);//作成
-        scrollpane.setBounds(10, 50, 370, 350); //境界の設定
-        //成績本体を表示するためのJTextFieldの設定
-        JTextField recordText[][] = new JTextField[num][3];
-        //対戦成績本体（1行毎にループを用いてpに貼り付けていく）
-        for(int i=0; i<num; i++){
-            recordText[i][0] = new JTextField(recordName[i],19); //テキストエリア作成
-            recordText[i][1] = new JTextField(Integer.toString(record[i][0]) + "勝" + 
-                                              Integer.toString(record[i][1]) + "敗" +
-                                              Integer.toString(record[i][2]) + "分" ,15);
-            recordText[i][2] = new JTextField("投了数" + Integer.toString(record[i][0]+record[i][1]+record[i][2]),10);
-            recordText[i][0].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13)); //フォントの設定
-            recordText[i][1].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
-            recordText[i][2].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
-            recordText[i][0].setEditable(false); //編集不可能にする
-            recordText[i][1].setEditable(false);
-            recordText[i][2].setEditable(false);
-            p.add(recordText[i][0]);
-            p.add(recordText[i][1]);
-            p.add(recordText[i][2]);
-        }
-        myFrame.add(scrollpane,BorderLayout.CENTER); //データをまとめたJScrollPaneをJFrameに貼り付ける
-        myFrame.setVisible(true); //最後にJFrameの表示処理
+    //対戦成績をサーバから要求 
+    try{
+        writer.println("View Results");
+        recordString = reader.readLine();
+    }catch(IOException e){
     }
+
+    //一列のStringで送られてきたデータを分割していく（セミコロン毎に1人分、カンマ毎に数値区切り）
+    //形式: id,name,pass,win,lose,draw;...（これを人数分繰り返す）
+    //最終的にrecordに格納される
+    String recordString2[] = recordString.split(";");
+    String recordString3[][] = new String[recordString2.length][6];
+    //このうち実際に描画するのは name,win,lose,draw の4つのみ
+    //この4つのうち数値に変換する必要があるのがwin,lose,drawなので、この3つのみ数値に変換する
+    int recordInt[][] = new int[recordString2.length][3];
+    for(int i=0; i<recordString2.length; i++){
+        recordString3[i] = recordString2[i].split(",");
+        recordInt[i][0] = Integer.parseInt(recordString3[i][3]);//winの変換
+        recordInt[i][1] = Integer.parseInt(recordString3[i][4]);//loseの変換
+        recordInt[i][2] = Integer.parseInt(recordString3[i][5]);//drawの変換
+    }
+
+    int num = recordString2.length;//成績のデータ行数（＝人数）
+
+    //JFrameの設定
+    JFrame myFrame = new JFrame("成績閲覧");//作成
+    myFrame.setSize(400,450);//ウィンドウの大きさの設定
+    myFrame.setLayout(null);//レイアウトマネージャは無し（座標を直接指定）
+    //タイトル「対戦成績」の表示
+    JLabel title = new JLabel("対戦成績");//作成
+    title.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 25));//フォントの設定
+    title.setBounds(140, 0, 200, 40); //境界の設定
+    myFrame.add(title);//ペインに追加
+    //成績本体を表示するためのJPanelの設定
+    JPanel p = new JPanel();//作成
+    p.setPreferredSize(new Dimension(350, 22*num));//サイズの調整（縦はデータの数に応じて大きさを変える）
+    //JScrollPaneの設定（pを制御する）
+    JScrollPane scrollpane = new JScrollPane(p);//作成
+    scrollpane.setBounds(10, 50, 370, 350); //境界の設定
+    //成績本体を表示するためのJTextFieldの設定
+    JTextField recordText[][] = new JTextField[num][3];
+    //対戦成績本体（1行毎にループを用いてpに貼り付けていく）
+    for(int i=0; i<num; i++){
+        recordText[i][0] = new JTextField(recordString3[i][1],19); //テキストエリア作成
+        recordText[i][1] = new JTextField(Integer.toString(recordInt[i][0]) + "勝" + 
+                                          Integer.toString(recordInt[i][1]) + "敗" +
+                                          Integer.toString(recordInt[i][2]) + "分" ,15);
+        recordText[i][2] = new JTextField("投了数" + Integer.toString(recordInt[i][0]+recordInt[i][1]+recordInt[i][2]),10);
+        recordText[i][0].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13)); //フォントの設定
+        recordText[i][1].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+        recordText[i][2].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+        recordText[i][0].setEditable(false); //編集不可能にする
+        recordText[i][1].setEditable(false);
+        recordText[i][2].setEditable(false);
+        p.add(recordText[i][0]);
+        p.add(recordText[i][1]);
+        p.add(recordText[i][2]);
+    }
+    myFrame.add(scrollpane,BorderLayout.CENTER); //データをまとめたJScrollPaneをJFrameに貼り付ける
+    myFrame.setVisible(true); //最後にJFrameの表示処理
+}
 
     /* 切断のメッセージを表示 工数:0.25 進捗:0 */
     public void displayDisconnectionMessage() {
