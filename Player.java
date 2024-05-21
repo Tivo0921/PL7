@@ -246,7 +246,6 @@ public class Player extends JFrame {
             if (command.equals("1")) {
                 if (roomIdField.getText().matches("^\\d{1,9}$")) {
                     System.out.println("マッチ画面再描画");
-<<<<<<< HEAD
                     roomId = Integer.parseInt(roomIdField.getText());
                     System.out.println(roomId + "が入力された");
                     // クライアントプログラムから該当ルームの有無を受け取る
@@ -264,54 +263,53 @@ public class Player extends JFrame {
                         successMatching = true;
                         System.out.println(inputRoomId + "のルームがあったので入室");
                     }
-=======
-                roomId = Integer.parseInt(roomIdField.getText());
-                System.out.println(roomId+"が入力された");
-                // クライアントプログラムから該当ルームの有無を受け取る
-                inputRoomId = client.acceptRoomID(roomId);
-                System.out.println(inputRoomId+"でルームIDが返された");
-                // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
-                if (inputRoomId!=roomId) {
-                    // ルームIDが存在しなかった場合は新規ルーム作成
-                    roomId = inputRoomId;
+                    roomId = Integer.parseInt(roomIdField.getText());
+                    System.out.println(roomId + "が入力された");
+                    // クライアントプログラムから該当ルームの有無を受け取る
+                    inputRoomId = client.acceptRoomID(roomId);
+                    System.out.println(inputRoomId + "でルームIDが返された");
+                    // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
+                    if (inputRoomId != roomId) {
+                        // ルームIDが存在しなかった場合は新規ルーム作成
+                        roomId = inputRoomId;
+                        matchFrame.setVisible(false);
+                        makeRoom(playerName);
+                        matchFrame.setVisible(true);
+                        System.out.println("ルームが存在しなかったため新規ルームを作成");
+                    } else {
+                        successMatching = true;
+                        System.out.println("サーバからの相手のユーザ名情報の送信待ち");
+                        client.opponentName = client.getServerMessage();// 今度は相手のユーザ名が送られてくるのでそれを受け取って反映
+                        System.out.println("サーバからの相手のユーザ名情報を受け取りました");
+                        System.out.println(inputRoomId + "のルームがあったので入室");
+
+                    }
+                }
+
+                if (command.equals("2")) {
                     matchFrame.setVisible(false);
+                    System.out.println("sasakinodebug jump1");
                     makeRoom(playerName);
+                    System.out.println("sasakinodebug jump2");
                     matchFrame.setVisible(true);
-                    System.out.println("ルームが存在しなかったため新規ルームを作成");
-                }else{
-                    successMatching=true;
-                    System.out.println("サーバからの相手のユーザ名情報の送信待ち");
-                    client.opponentName = client.getServerMessage();//今度は相手のユーザ名が送られてくるのでそれを受け取って反映
-                    System.out.println("サーバからの相手のユーザ名情報を受け取りました");
-                    System.out.println(inputRoomId+"のルームがあったので入室");
->>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
+                    System.out.println("sasakinodebug jump3");
+                }
+
+                if (command.equals("3")) {
+                    displayPlayRecord();
+                    command = "";
+                }
+
+                // ルームIDが受理されたらマッチ確認画面へ遷移
+                if (successMatching) {
+                    matchFrame.setVisible(false);
+                    client.firstMove = false; // 自分が後手であることをクライアントに通知
+                    // マッチ確認画面描画
+                    displayMatching();
+                    matchFrame.setVisible(true);
                 }
             }
-
-            if (command.equals("2")) {
-                matchFrame.setVisible(false);
-                System.out.println("sasakinodebug jump1");
-                makeRoom(playerName);
-                System.out.println("sasakinodebug jump2");
-                matchFrame.setVisible(true);
-                System.out.println("sasakinodebug jump3");
-            }
-
-            if (command.equals("3")) {
-                displayPlayRecord();
-                command = "";
-            }
-
-            // ルームIDが受理されたらマッチ確認画面へ遷移
-            if (successMatching) {
-                matchFrame.setVisible(false);
-                client.firstMove = false; // 自分が後手であることをクライアントに通知
-                // マッチ確認画面描画
-                displayMatching();
-                matchFrame.setVisible(true);
-            }
         }
-
     }
 
     // 工数0
@@ -398,20 +396,18 @@ public class Player extends JFrame {
             command = "";
             while (command == "") {
                 Thread.sleep(1000);
-<<<<<<< HEAD
                 if (client.checkServerMessage()) {// クライアントプログラムが対戦相手が現れた旨のメッセージを受け取ったら
                     roomFrame.setVisible(false);
                     client.firstMove = true; // 自分が先手であることをクライアントに通知
-=======
-                if(client.checkServerMessage()){//クライアントプログラムが対戦相手が現れた旨のメッセージを受け取った場合
-                    System.out.println("サーバからの相手のユーザ名情報の送信待ち");
-                    client.opponentName = client.getServerMessage();//今度は相手のユーザ名が送られてくるのでそれを受け取って反映
-                    System.out.println("サーバからの相手のユーザ名情報を受け取りました");
-                    roomFrame.setVisible(false);
->>>>>>> d8b3adb1cd69a367e7db8e366efc85f1f10cbf72
-                    System.out.println("display呼び出しB");
-                    displayMatching();// マッチ確認画面に移行
-                    break;
+                    if (client.checkServerMessage()) {// クライアントプログラムが対戦相手が現れた旨のメッセージを受け取った場合
+                        System.out.println("サーバからの相手のユーザ名情報の送信待ち");
+                        client.opponentName = client.getServerMessage();// 今度は相手のユーザ名が送られてくるのでそれを受け取って反映
+                        System.out.println("サーバからの相手のユーザ名情報を受け取りました");
+                        roomFrame.setVisible(false);
+                        System.out.println("display呼び出しB");
+                        displayMatching();// マッチ確認画面に移行
+                        break;
+                    }
                 }
             }
         } catch (InterruptedException e) {
