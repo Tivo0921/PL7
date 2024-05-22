@@ -174,8 +174,6 @@ public class Client extends JFrame implements ActionListener {
             writer.println("make a room");
             // ルームIDを受信
             message = reader.readLine();
-            // 相手ユーザーの名前を受信
-            opponentName = reader.readLine();
             System.out.println("opponentName = " + opponentName);
             // 先手後手情報の設定
             firstMove = true;
