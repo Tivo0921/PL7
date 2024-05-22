@@ -1,6 +1,8 @@
+//Server.java
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.BufferedWriter;
@@ -15,9 +17,9 @@ import java.util.Set;
 //スレッド部（各クライアントに応じて）
 class ClientProcThread extends Thread {
     private int number;// 自分の番号
-    private BufferedReader myIn;
+    public BufferedReader myIn;
     private InputStreamReader myIsr;
-    private PrintWriter myOut;
+    public PrintWriter myOut;
     private String myName;// 接続者の名前
     private String myPass;
     private String myRoom;
@@ -29,45 +31,79 @@ class ClientProcThread extends Thread {
         myOut = out;
     }
 
+    public BufferedReader getMyIn() {
+        return myIn;
+    }
+
+    public PrintWriter getMyOut() {
+        return myOut;
+    }
+
     public void run() {
         try {
             myOut.println("Hello, client No." + number);// 初回だけ呼ばれる
             while (true) {
                 String receivedLogin = myIn.readLine();
+                System.out.println(receivedLogin + "jjjjjjjjjj");
 
                 // カンマを基に名前とパスワードに分割
                 String[] splitReceivedLogin = receivedLogin.split(",");
-
+                System.out.println(splitReceivedLogin.length + "kkkkkkkkkk");
+                System.out.println("eeeeeeeeeeeeeeee");
+                for (int i = 0; i < splitReceivedLogin.length; i++) {
+                    System.out.println(splitReceivedLogin[i]);
+                }
                 myName = splitReceivedLogin[0];// 初めて接続したときの一行目は名前
                 myPass = splitReceivedLogin[1];
-                if (!Server.readUserID1(myName, myPass)) {
-                    Server.writeUserID(number, myName, myPass);
+                // jjj
+
+                if (!UserRepository.exist(myName)) {
+
+                    UserRepository.addUser(myName, myPass);
                     break;
-                } else if (Server.readUserID2(myName, myPass)) {
-                    // myOut.println("名前かパスワードが間違っています。");
                 }
             }
             while (true) {
                 myRoom = myIn.readLine();
                 if (myRoom.equals("View Results")) {
-                    myOut.println(Server.countPlayRecord());
-                    for (int i = 1; i <= Server.countPlayRecord(); i++) {
-                        int[][] result = Server.transferPlayRecord(i);
-                        // 二次元配列を文字列に変換
-                        StringBuilder sb = new StringBuilder();
-                        for (int p = 0; p < result.length; p++) {
-                            for (int j = 0; j < result[p].length; j++) {
-                                sb.append(result[p][j]);
-                                if (j < result[p].length - 1) {
-                                    sb.append(",");
-                                }
-                            }
-                            if (p < result.length - 1) {
-                                sb.append(";");
-                            }
-                        }
-                        String resultString = sb.toString();
-                        myOut.println(Server.serveName(i) + ",id:" + resultString);
+                    List<String> user = UserRepository.search(myName);
+                    List<String> result = new ArrayList<>(user.subList(3, 6));
+                    myOut.println(result);
+                    myOut.flush();
+
+                    // myOut.println(Server.countPlayRecord());
+                    // for (int i = 1; i <= Server.countPlayRecord(); i++) {
+
+                    // // 二次元配列を文字列に変換
+                    // StringBuilder sb = new StringBuilder();
+                    // for (int p = 0; p < result.length; p++) {
+                    // for (int j = 0; j < result[p].length; j++) {
+                    // sb.append(result[p][j]);
+                    // if (j < result[p].length - 1) {
+                    // sb.append(",");
+                    // }
+                    // }
+                    // if (p < result.length - 1) {
+                    // sb.append(";");
+                    // }
+                    // }
+                    // String resultString = sb.toString();
+                    // myOut.println(Server.serveName(i) + ",id:" + resultString);
+                    // myOut.flush();
+                    // }
+                } else if (myRoom.equals("search room")) {
+                    System.out.println("search room");
+                    String roomId = myIn.readLine();
+                    System.out.println(roomId);
+                    if (RoomRepository.exist(roomId)) {
+                        List<String> room = RoomRepository.search(roomId);
+                        RoomRepository.addUser2(roomId, myName);
+                        myOut.println(room.get(0));
+                        myOut.println(room.get(1));
+
+                        myOut.flush();
+                    } else {
+                        myOut.println(0);
                         myOut.flush();
                     }
                 } else if (myRoom.equals("make a room")) {
@@ -184,49 +220,10 @@ class Server {
     public static int roomId = 0;// 0から昇順
     public static int maxRoomId = 3;// 最大のルームID(ルームID数-1)
 
-    private static String directoryPath;
+    public static String directoryPath;
 
     public static void setDirectoryPath(String path) {
         directoryPath = path.endsWith("/") ? path : path + "/";
-    }
-
-    private synchronized static void writeToFile(String fileName, List<String> content, boolean append) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, append))) {
-            for (String line : content) {
-                writer.write(line);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public synchronized static void writeUserID(int id, String myName, String myPass) {
-        String fileName = directoryPath + "User.txt";
-        boolean idExists = false;
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length != 6) {
-                    continue;
-                }
-                int uid = Integer.parseInt(parts[0]);
-                if (uid == id) {
-                    idExists = true;
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (!idExists) {
-            List<String> content = new ArrayList<>();
-            content.add(id + "," + myName + "," + myPass);
-            writeToFile(fileName, content, true);
-        } else {
-            System.out.println("ID already exists");
-        }
     }
 
     public static boolean readUserID1(String myName, String myPass) {
@@ -273,27 +270,28 @@ class Server {
         return loginFalse;
     }
 
-    public static String serveName(int id) {
-        String fileName = directoryPath + "User.txt";
-        String uName = "";
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length != 6) {
-                    continue;
-                }
-                int uid = Integer.parseInt(parts[0]);
-                String Name = parts[1];
-                if (uid == id) {
-                    uName = Name;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return uName;
-    }
+    // public static String serveName(int id) {
+
+    // String fileName = directoryPath + "User.txt";
+    // String uName = "";
+    // try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+    // String line;
+    // while ((line = reader.readLine()) != null) {
+    // String[] parts = line.split(",");
+    // if (parts.length != 6) {
+    // continue;
+    // }
+    // int uid = Integer.parseInt(parts[0]);
+    // String Name = parts[1];
+    // if (uid == id) {
+    // uName = Name;
+    // }
+    // }
+    // } catch (IOException e) {
+    // e.printStackTrace();
+    // }
+    // return uName;
+    // }
 
     public static int countPlayRecord() {
         String fileName = directoryPath + "Result.txt";
@@ -307,7 +305,6 @@ class Server {
             e.printStackTrace();
         }
         return cnt;
-
     }
 
     public static int[][] transferPlayRecord(int id) {
@@ -352,183 +349,91 @@ class Server {
         flag[n] = value;
     }
 
-    public synchronized static void writeRoomID(int roomId, String user1, String user2) {
-        String fileName = directoryPath + "Room.txt";
-        boolean roomIdExists = false;
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length > 0 && Integer.parseInt(parts[0]) == roomId) {
-                    roomIdExists = true;
-                    break;
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (!roomIdExists) {
-            List<String> content = new ArrayList<>();
-            content.add(roomId + "," + user1);
-            writeToFile(fileName, content, true);
-        } else {
-            System.out.println("Room ID already exists");
-        }
-    }
-
-    public static List<String> readRoomIDFile() {
-        String fileName = directoryPath + "Room.txt";
-        List<String> fileContent = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                fileContent.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return fileContent;
-    }
-
-    public static void readRoomID() {
-        List<String> fileContent = readRoomIDFile();
-        for (String line : fileContent) {
-            String[] parts = line.split(",");
-            if (parts.length != 3) {
-                continue;
-            }
-            int roomId = Integer.parseInt(parts[0]);
-            String user1 = parts[1];
-            String user2 = parts[2];
-            System.out.println("ID: " + roomId + ", User1: " + user1 + ", User2: " + user2);
-        }
-    }
+    // public static void readRoomID() {
+    // List<String> fileContent = readRoomIDFile();
+    // for (String line : fileContent) {
+    // String[] parts = line.split(",");
+    // if (parts.length != 3) {
+    // continue;
+    // }
+    // int roomId = Integer.parseInt(parts[0]);
+    // String user1 = parts[1];
+    // String user2 = parts[2];
+    // System.out.println("ID: " + roomId + ", User1: " + user1 + ", User2: " +
+    // user2);
+    // }
+    // }
 
     public synchronized static int makeRoom(String user1) {
-        List<String> fileContent = readRoomIDFile();
-        Set<Integer> roomIds = new HashSet<>();
-
-        for (String line : fileContent) {
-            String[] parts = line.split(",");
-            if (parts.length != 2) { // 池田が加筆
-                continue;
-            }
-            int roomId = Integer.parseInt(parts[0]);
-            roomIds.add(roomId);
-        }
-
-        int newRoomId = 1;
-        while (roomIds.contains(newRoomId)) {
-            newRoomId++;
-            System.out.println("ルームIDを" + newRoomId + "にしました");
-        }
-        writeRoomID(newRoomId, user1, "");
-        System.out.println("Created room with ID: " + newRoomId + " for user: " + user1);
-        return newRoomId;
+        String newRoomId = RoomRepository.addRoom();
+        RoomRepository.addUser1(newRoomId, user1);
+        return Integer.parseInt(newRoomId);
     }
 
     public synchronized static int enterRoom(int roomId, String user2) {
-        List<String> fileContent = readRoomIDFile();
-        boolean roomFound = false;
-        int room = 0;
-
-        for (int i = 0; i < fileContent.size(); i++) {
-            String[] parts = fileContent.get(i).split(",");
-            if (parts.length != 2) { // 池田が加筆
-                continue;
-            }
-            int currentRoomId = Integer.parseInt(parts[0]);
-            if (currentRoomId == roomId) {
-                if (!parts[2].isEmpty()) {
-                    System.out.println("部屋は満員です");
-                    room = 2;
-                    return room;
-                }
-                fileContent.set(i, parts[0] + "," + parts[1] + "," + user2);
-                roomFound = true;
-                break;
-            }
+        if (!RoomRepository.exist(String.valueOf(roomId))) {
+            String newRoomId = RoomRepository.addRoom();
+            RoomRepository.addUser1(newRoomId, user2);
+            return 0;
         }
 
-        if (!roomFound) {
-            System.out.println("Room ID " + roomId + " not found.");
-            return room;
+        List<String> room = RoomRepository.search(String.valueOf(roomId));
+        if (room.get(2).equals("0")) {
+            RoomRepository.addUser2(String.valueOf(roomId), user2);
+            return 1;
         }
-
-        String fileName = directoryPath + "Room.txt";
-        writeToFile(fileName, fileContent, false);
-
-        room = 1;
-
-        System.out.println("User " + user2 + " entered room with ID: " + roomId);
-        return room;
+        return 2;
     }
 
     public synchronized static void deleteRoom(int roomId) {
-        String fileName = directoryPath + "Room.txt";
-        List<String> fileContent = new ArrayList<>();
-        boolean roomFound = false;
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length != 3) {
-                    continue;
-                }
-                int currentRoomId = Integer.parseInt(parts[0]);
-                if (currentRoomId == roomId) {
-                    roomFound = true;
-                    continue;
-                }
-                fileContent.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        RoomRepository.deleteRoom(String.valueOf(roomId));
     }
 
     public synchronized static void renewRecord(int result, int id) {
-        String fileName = directoryPath + "Result.txt";
-        List<String> fileContent = new ArrayList<>();
-        boolean userFound = false;
+        String userName = RoomRepository.search(String.valueOf(id)).get(1);
+        UserRepository.updateRecord(result, userName);
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length != 6) {
-                    continue;
-                }
-                int currentId = Integer.parseInt(parts[0]);
-                if (currentId == id) {
-                    int myWin = Integer.parseInt(parts[2]);
-                    int myLose = Integer.parseInt(parts[3]);
-                    int myDraw = Integer.parseInt(parts[4]);
+        // String fileName = directoryPath + "Result.txt";
+        // List<String> fileContent = new ArrayList<>();
+        // boolean userFound = false;
 
-                    if (result == 0)
-                        myWin++;
-                    else if (result == 1)
-                        myLose++;
-                    else if (result == 2)
-                        myDraw++;
+        // try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+        // String line;
+        // while ((line = reader.readLine()) != null) {
+        // String[] parts = line.split(",");
+        // if (parts.length != 6) {
+        // continue;
+        // }
+        // int currentId = Integer.parseInt(parts[0]);
+        // if (currentId == id) {
+        // int myWin = Integer.parseInt(parts[2]);
+        // int myLose = Integer.parseInt(parts[3]);
+        // int myDraw = Integer.parseInt(parts[4]);
 
-                    line = parts[0] + "," + parts[1] + "," + "," + myWin + "," + myLose + "," + myDraw;
-                    userFound = true;
-                }
-                fileContent.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // if (result == 0)
+        // myWin++;
+        // else if (result == 1)
+        // myLose++;
+        // else if (result == 2)
+        // myDraw++;
 
-        if (!userFound) {
-            System.out.println("User ID " + id + " not found.");
-            return;
-        }
+        // line = parts[0] + "," + parts[1] + "," + "," + myWin + "," + myLose + "," +
+        // myDraw;
+        // userFound = true;
+        // }
+        // fileContent.add(line);
+        // }
+        // } catch (IOException e) {
+        // e.printStackTrace();
+        // }
 
-        writeToFile(fileName, fileContent, false);
-        System.out.println("User ID " + id + " record updated.");
+        // if (!userFound) {
+        // System.out.println("User ID " + id + " not found.");
+        // return;
+        // }
+
+        // writeToFile(fileName, fileContent, false);
+        // System.out.println("User ID " + id + " record updated.");
     }
 
     // mainプログラム
@@ -540,9 +445,7 @@ class Server {
         in = new BufferedReader[maxConnection];
         out = new PrintWriter[maxConnection];
         myClientProcThread = new ClientProcThread[maxConnection];
-
-        setDirectoryPath("C:/Users/shun0/university/PL7");
-
+        setDirectoryPath("C:/Users/kou15/PL7");
         int n = 1;
 
         try {
@@ -557,13 +460,238 @@ class Server {
                 in[n] = new BufferedReader(isr[n]);
                 out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
 
-                myClientProcThread[n] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]);// 必要なパラメータを渡しスレッドを作成
-                myClientProcThread[n].start();// スレッドを開始する
-                member = n;// メンバーの数を更新する
+                myClientProcThread[n] = new ClientProcThread(n,incoming[n] ,isr[n],in[n], out[n]); // 必要なパラメータを渡しスレッドを作成
+                myClientProcThread[n].start(); // スレッドを開始する
+                member = n; // メンバーの数を更新する
                 n++;
             }
+            
+        
         } catch (Exception e) {
             System.err.println("ソケット作成時にエラーが発生しました: " + e);
         }
     }
+}
+
+class RoomRepository {
+
+    private static final String FILE_NAME = Server.directoryPath + "/Room.txt";
+    private static final String DELIMITER = ",";
+
+    public static String addRoom() {
+        List<List<String>> rooms = readRoom();
+        System.out.println(rooms + "addRoom");
+        List<String> newRoom = new ArrayList<>();
+        newRoom.add(String.valueOf(rooms.size() + 1));
+        newRoom.add("0");
+        newRoom.add("0");
+        rooms.add(newRoom);
+        System.out.println(rooms);
+        writeRoom(rooms);
+
+        return String.valueOf(rooms.size());
+    }
+
+    public static void deleteRoom(String roomId) {
+        List<List<String>> rooms = readRoom();
+        for (int index = 0; index < rooms.size(); index++) {
+            if (rooms.get(index).get(0).equals(roomId)) {
+                rooms.remove(index);
+            }
+        }
+        writeRoom(rooms);
+    }
+
+    public static List<String> search(String roomId) {
+        List<String> result = new ArrayList<>();
+        List<List<String>> rooms = readRoom();
+        System.out.println("search1");
+        for (List<String> room : rooms) {
+            System.out.println("search2");
+            if (room.get(0).equals(roomId)) {
+                result = room;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public static boolean exist(String roomId) {
+        if (search(roomId).isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    public static void addUser1(String roomId, String user1) {
+        List<List<String>> rooms = readRoom();
+        for (List<String> room : rooms) {
+            if (room.get(0).equals(roomId)) {
+                room.set(1, user1);
+                break;
+            }
+        }
+        writeRoom(rooms);
+    }
+
+    public static void addUser2(String roomId, String user2) {
+        List<List<String>> rooms = readRoom();
+        for (List<String> room : rooms) {
+            if (room.get(0).equals(roomId)) {
+                room.set(2, user2);
+                break;
+            }
+        }
+        writeRoom(rooms);
+    }
+
+    public static void writeRoom(List<List<String>> rooms) {
+        List<String> content = new ArrayList<>();
+        for (List<String> room : rooms) {
+            content.add(room.get(0) + DELIMITER + room.get(1) + DELIMITER + room.get(2));
+        }
+        writeToFile(FILE_NAME, content);
+    }
+
+    public static void writeToFile(String fileName, List<String> content) {
+        System.out.println(content);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, false))) {
+            for (String line : content) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static List<List<String>> readRoom() {
+        List<List<String>> result = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(FILE_NAME))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                List<String> row = new ArrayList<>();
+                for (String value : values) {
+                    row.add(value);
+                }
+                result.add(row);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+}
+
+class UserRepository {
+    private static final String FILE_NAME = Server.directoryPath + "/User.txt";
+    private static final String DELIMITER = ",";
+
+    public static List<String> search(String userName) {
+        List<String> result = new ArrayList<>();
+        List<List<String>> users = readUser();
+        System.out.println(users);
+        for (List<String> user : users) {
+            if (user.get(1).equals(userName)) {
+                result = user;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public static boolean exist(String userName) {
+        if (search(userName).isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    public static void addUser(String userName, String password) {
+        List<List<String>> users = readUser();
+        List<String> newUser = new ArrayList<>();
+        int userId = users.size() + 1;
+        int win = 0;
+        int lose = 0;
+        int draw = 0;
+        newUser.add(String.valueOf(userId));
+        newUser.add(userName);
+        newUser.add(password);
+        newUser.add(String.valueOf(win));
+        newUser.add(String.valueOf(lose));
+        newUser.add(String.valueOf(draw));
+        users.add(newUser);
+        writeUser(users);
+    }
+
+    public static void updateRecord(int gameResult, String userName) {
+        List<List<String>> users = readUser();
+        for (List<String> user : users) {
+            if (user.get(1).equals(userName)) {
+                int win = Integer.parseInt(user.get(3));
+                int lose = Integer.parseInt(user.get(4));
+                int draw = Integer.parseInt(user.get(5));
+                switch (gameResult) {
+                    case 0 | 3:
+                        win++;
+                        break;
+                    case 1 | 4:
+                        lose++;
+                        break;
+                    case 2:
+                        draw++;
+                        break;
+                }
+                user.set(3, String.valueOf(win));
+                user.set(4, String.valueOf(lose));
+                user.set(5, String.valueOf(draw));
+                break;
+            }
+        }
+        writeUser(users);
+    }
+
+    public static List<List<String>> readUser() {
+        List<List<String>> result = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(FILE_NAME))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                List<String> row = new ArrayList<>();
+                for (String value : values) {
+                    row.add(value);
+                }
+                result.add(row);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    public static void writeUser(List<List<String>> users) {
+        List<String> content = new ArrayList<>();
+        for (List<String> user : users) {
+            content.add(user.get(0) + DELIMITER + user.get(1) + DELIMITER + user.get(2));
+        }
+        writeToFile(FILE_NAME, content);
+    }
+
+    public static void writeToFile(String fileName, List<String> content) {
+        System.out.println(content);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, false))) {
+            for (String line : content) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

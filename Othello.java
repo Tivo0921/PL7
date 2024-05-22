@@ -1,3 +1,4 @@
+//Othello.java
 /*だて　編集 */
 //座標を受け取って，配列を返す
 //石を置いて，その後に裏返したりするメソッドを動かす
@@ -59,8 +60,8 @@ public class Othello {
             return false;
         } else {// 指定した場所から8方向を確認し，ひっくり返せる石があるかを確認
             int check = 0;
-            if (y > 0 && x > 0){// 左上に石が存在する場合
-                if(board[y - 1][x - 1] != stone && board[y - 1][x - 1] != 0){
+            if (y > 0 && x > 0) {// 左上に石が存在する場合
+                if (board[y - 1][x - 1] != stone && board[y - 1][x - 1] != 0) {
                     for (int i = 2; true; i++) {
                         if (x - i < 0 || y - i < 0 || board[y - i][x - i] == 0) {// 石がない場合
                             // System.out.println("左上:NG");
@@ -74,23 +75,23 @@ public class Othello {
                 }
             }
 
-            if (y > 0){// 上に石が存在する場合
-                if(board[y - 1][x] != stone && board[y - 1][x] != 0){
+            if (y > 0) {// 上に石が存在する場合
+                if (board[y - 1][x] != stone && board[y - 1][x] != 0) {
                     for (int i = 2; true; i++) {
                         if (y - i < 0 || board[y - i][x] == 0) {// 石がない場合は終了
-                            // System.out.println("上　:NG");
+                            // System.out.println("上 :NG");
                             break;
                         } else if (board[y - i][x] == stone) {// 自分の石と同じ場合
                             check++;
-                            // System.out.println("上　:OK");
+                            // System.out.println("上 :OK");
                             break;
                         }
                     }
                 }
             }
 
-            if (y > 0 && x < 7){// 右上に石が存在する場合
-                if(board[y - 1][x + 1] != stone && board[y - 1][x + 1] != 0){
+            if (y > 0 && x < 7) {// 右上に石が存在する場合
+                if (board[y - 1][x + 1] != stone && board[y - 1][x + 1] != 0) {
                     for (int i = 2; true; i++) {
                         if (x + i > 7 || y - i < 0 || board[y - i][x + i] == 0) {// 石がない場合
                             // System.out.println("右下:NG");
@@ -104,38 +105,38 @@ public class Othello {
                 }
             }
 
-            if (y < 7){// 下に石が存在する場合
-                if(board[y + 1][x] != stone && board[y + 1][x] != 0){
+            if (y < 7) {// 下に石が存在する場合
+                if (board[y + 1][x] != stone && board[y + 1][x] != 0) {
                     for (int i = 2; true; i++) {
                         if (y + i > 7 || board[y + i][x] == 0) {// 石がない場合，終了
-                            // System.out.println("下　:NG");
+                            // System.out.println("下 :NG");
                             break;
                         } else if (board[y + i][x] == stone) {// 自分の石の場合
                             check++;
-                            // System.out.println("下　:OK");
+                            // System.out.println("下 :OK");
                             break;
                         }
                     }
                 }
             }
 
-            if (x < 7){// 右に石が存在する場合
-                if(board[y][x + 1] != stone && board[y][x + 1] != 0){
+            if (x < 7) {// 右に石が存在する場合
+                if (board[y][x + 1] != stone && board[y][x + 1] != 0) {
                     for (int i = 2; true; i++) {
                         if (x + i > 7 || board[y][x + i] == 0) {// 石がない場合
-                            // System.out.println("右　:NG");
+                            // System.out.println("右 :NG");
                             break;
                         } else if (board[y][x + i] == stone) {// 自分の石の場合
                             check++;
-                            // System.out.println("右　:OK");
+                            // System.out.println("右 :OK");
                             break;
                         }
                     }
                 }
             }
 
-            if (y < 7 && x > 0){// 左下に石が存在する場合． x < 7 消去
-                if(board[y + 1][x - 1] != stone && board[y + 1][x - 1] != 0){
+            if (y < 7 && x > 0) {// 左下に石が存在する場合． x < 7 消去
+                if (board[y + 1][x - 1] != stone && board[y + 1][x - 1] != 0) {
                     for (int i = 2; true; i++) {
                         if (x - i < 0 || y + i > 7 || board[y + i][x - i] == 0) {// 石がない場合
                             // System.out.println("左下:NG");
@@ -149,23 +150,23 @@ public class Othello {
                 }
             }
 
-            if (x > 0){// 左に石が存在する場合
-                if(board[y][x - 1] != stone && board[y][x - 1] != 0){
+            if (x > 0) {// 左に石が存在する場合
+                if (board[y][x - 1] != stone && board[y][x - 1] != 0) {
                     for (int i = 2; true; i++) {
                         if (x - i < 0 || board[y][x - i] == 0) {// 石がない場合
-                            // System.out.println("左　:NG");
+                            // System.out.println("左 :NG");
                             break;
                         } else if (board[y][x - i] == stone) {// 自分の石の場合
                             check++;
-                            // System.out.println("左　:OK");
+                            // System.out.println("左 :OK");
                             break;
                         }
                     }
                 }
             }
 
-            if (y < 7 && x < 7){// 右下に石が存在する場合
-                if(board[y + 1][x + 1] != stone && board[y + 1][x + 1] != 0){
+            if (y < 7 && x < 7) {// 右下に石が存在する場合
+                if (board[y + 1][x + 1] != stone && board[y + 1][x + 1] != 0) {
                     for (int i = 2; true; i++) {
                         if (x + i > 7 || y + i > 7 || board[y + i][x + i] == 0) {// 石がない場合
                             // System.out.println("右下:NG");
@@ -216,24 +217,23 @@ public class Othello {
 
     // 以下の八つのメソッドで，おいた場所から8方向の確認を行なっています
     public void turnLeftUp(int x, int y, int stone) {// 左上方向
-        if(y > 1 && x > 1){
-        int next = board[y - 1][x - 1];// 左上の石
+        if (y > 1 && x > 1) {
+            int next = board[y - 1][x - 1];// 左上の石
 
-        if (next != stone && next != 0) {
-            for (int i = 2; true; i++) {
-                if (x - i < 0 || y - i < 0 || board[y - i][x - i] == 0) {// 石がない場合
-                    break;
-                } else if (board[y - i][x - i] == stone) {// 自分の石と同じ場合
-                    for (int t = 1; t < i; t++) {// 間の石を全てひっくり返す
-                        board[y - t][x - t] = stone;
+            if (next != stone && next != 0) {
+                for (int i = 2; true; i++) {
+                    if (x - i < 0 || y - i < 0 || board[y - i][x - i] == 0) {// 石がない場合
+                        break;
+                    } else if (board[y - i][x - i] == stone) {// 自分の石と同じ場合
+                        for (int t = 1; t < i; t++) {// 間の石を全てひっくり返す
+                            board[y - t][x - t] = stone;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
     }
-        }
-
 
     public void turnUp(int x, int y, int stone) {// 上方向
         if (y > 1) {// 盤面の上から2行目より下で行う処理
@@ -279,25 +279,25 @@ public class Othello {
 
     public void turnDown(int x, int y, int stone) {// 下
         // 下の石
-        if(y < 6){
-        int next = board[y + 1][x];
-        // 下の石が裏の場合
-        if (next != stone && next != 0) {
-            // さらにその一つ下から順に確認
-            for (int i = 2; true; i++) {
-                if (y + i > 7 || board[y + i][x] == 0) {
-                    // 石がない場合，終了
-                    break;
-                } else if (board[y + i][x] == stone) {
-                    // 自分の石の場合
-                    for (int t = 1; t < i; t++) {
-                        // 上書き
-                        board[y + t][x] = stone;
+        if (y < 6) {
+            int next = board[y + 1][x];
+            // 下の石が裏の場合
+            if (next != stone && next != 0) {
+                // さらにその一つ下から順に確認
+                for (int i = 2; true; i++) {
+                    if (y + i > 7 || board[y + i][x] == 0) {
+                        // 石がない場合，終了
+                        break;
+                    } else if (board[y + i][x] == stone) {
+                        // 自分の石の場合
+                        for (int t = 1; t < i; t++) {
+                            // 上書き
+                            board[y + t][x] = stone;
+                        }
+                        break;
                     }
-                    break;
                 }
             }
-        }
         }
     }
 
