@@ -158,8 +158,9 @@ public class Client extends JFrame implements ActionListener {
             // 相手ユーザーの名前を受信
             opponentName = reader.readLine();
             System.out.println("opponentName = " + opponentName);
-            // 先手後手情報の設定
-            firstMove = false;
+            // 先手後手情報の設定（既存のルームに入ったか、新たなルームを作ったかによって変える）
+            if(roomID == Integer.parseInt(message)) firstMove = false;
+            else firstMove = true;
         } catch (IOException e) {
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
