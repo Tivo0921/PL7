@@ -101,6 +101,7 @@ public class Client extends JFrame implements ActionListener {
         c.add(button1);// ペインに追加
         c.add(button2);
         c.repaint();// 再描画
+        setVisible(true);
         command = ""; // コマンドの入力内容を検知する変数をリセットしておく
         // ボタンの入力がされるまで待機
         try {
