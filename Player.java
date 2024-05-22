@@ -125,11 +125,7 @@ public class Player extends JFrame {
 
         // ボタンの入力がされるまで待機
         try {
-<<<<<<< HEAD
             while (signal == "") {
-=======
-            while (command.equals("")) {
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
                 // System.out.println(command);
                 // System.out.println("何も入力されていない時間");
                 Thread.sleep(100);
@@ -228,90 +224,10 @@ public class Player extends JFrame {
         matchFrame.setVisible(true);
 
         while (true) {
-<<<<<<< HEAD
             System.out.println("debuuuuuuuuuug" + signal);
             try {
                 while (signal == "") {
                     Thread.sleep(100);
-=======
-            System.out.println("sasakinodebug infinit");
-            // ボタンの入力がされるまで待機
-            // try {
-            // command = "";
-            // while (command.equals("")) {
-            // System.out.println("何も入力されていない時間");
-            // Thread.sleep(100);
-            // }
-            // } catch (InterruptedException e) {
-            // System.out.println("Error: InterruptedException (in マッチ画面)");
-            // }
-
-            // 結果によって分岐
-            if (command.equals("1")) {
-                if (roomIdField.getText().matches("^\\d{1,9}$")) {
-                    System.out.println("マッチ画面再描画");
-                    roomId = Integer.parseInt(roomIdField.getText());
-                    System.out.println(roomId + "が入力された");
-                    // クライアントプログラムから該当ルームの有無を受け取る
-                    inputRoomId = client.acceptRoomID(roomId); // テスト用にコメントアウト
-                    System.out.println(inputRoomId + "でルームIDが返された");
-                    // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
-                    if (inputRoomId != roomId) {
-                        // ルームIDが存在しなかった場合は新規ルーム作成
-                        roomId = inputRoomId;
-                        matchFrame.setVisible(false);
-                        makeRoom(playerName);
-                        matchFrame.setVisible(true);
-                        System.out.println("ルームが存在しなかったため新規ルームを作成");
-                    } else {
-                        successMatching = true;
-                        System.out.println(inputRoomId + "のルームがあったので入室");
-                    }
-                    roomId = Integer.parseInt(roomIdField.getText());
-                    System.out.println(roomId + "が入力された");
-                    // クライアントプログラムから該当ルームの有無を受け取る
-                    inputRoomId = client.acceptRoomID(roomId);
-                    System.out.println(inputRoomId + "でルームIDが返された");
-                    // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
-                    if (inputRoomId != roomId) {
-                        // ルームIDが存在しなかった場合は新規ルーム作成
-                        roomId = inputRoomId;
-                        matchFrame.setVisible(false);
-                        makeRoom(playerName);
-                        matchFrame.setVisible(true);
-                        System.out.println("ルームが存在しなかったため新規ルームを作成");
-                    } else {
-                        successMatching = true;
-                        System.out.println("サーバからの相手のユーザ名情報の送信待ち");
-                        client.opponentName = client.getServerMessage();// 今度は相手のユーザ名が送られてくるのでそれを受け取って反映
-                        System.out.println("サーバからの相手のユーザ名情報を受け取りました");
-                        System.out.println(inputRoomId + "のルームがあったので入室");
-
-                    }
-                }
-
-                if (command.equals("2")) {
-                    matchFrame.setVisible(false);
-                    System.out.println("sasakinodebug jump1");
-                    makeRoom(playerName);
-                    System.out.println("sasakinodebug jump2");
-                    matchFrame.setVisible(true);
-                    System.out.println("sasakinodebug jump3");
-                }
-
-                if (command.equals("3")) {
-                    displayPlayRecord();
-                    command = "";
-                }
-
-                // ルームIDが受理されたらマッチ確認画面へ遷移
-                if (successMatching) {
-                    matchFrame.setVisible(false);
-                    client.firstMove = false; // 自分が後手であることをクライアントに通知
-                    // マッチ確認画面描画
-                    displayMatching();
-                    matchFrame.setVisible(true);
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
                 }
             } catch (InterruptedException e) {
                 System.out.println("Error: InterruptedException (in ログイン画面)");
@@ -424,31 +340,11 @@ public class Player extends JFrame {
         roomFrame.setVisible(true);
 
         // ボタンの入力がされるまで・または対戦相手が現れるまで待機
-<<<<<<< HEAD
         while (!client.checkServerMessage()) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 System.out.println("Error: InterruptedException (in ルーム作成画面)");
-=======
-        try {
-            command = "";
-            while (command.equals("")) {
-                Thread.sleep(1000);
-                if (client.checkServerMessage()) {// クライアントプログラムが対戦相手が現れた旨のメッセージを受け取ったら
-                    roomFrame.setVisible(false);
-                    client.firstMove = true; // 自分が先手であることをクライアントに通知
-                    if (client.checkServerMessage()) {// クライアントプログラムが対戦相手が現れた旨のメッセージを受け取った場合
-                        System.out.println("サーバからの相手のユーザ名情報の送信待ち");
-                        client.opponentName = client.getServerMessage();// 今度は相手のユーザ名が送られてくるのでそれを受け取って反映
-                        System.out.println("サーバからの相手のユーザ名情報を受け取りました");
-                        client.sendServerMessage("connect");// 接続完了の旨をサーバに送信
-                        roomFrame.setVisible(false);
-                        displayMatching();// マッチ確認画面に移行
-                        break;
-                    }
-                }
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
             }
         }
         client.firstMove = true; // 自分が先手であることをクライアントに通知
@@ -503,11 +399,7 @@ public class Player extends JFrame {
 
         // ボタンの入力がされるまで待機
         try {
-<<<<<<< HEAD
             while (signal == "") {
-=======
-            while (command.equals("")) {
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
                 Thread.sleep(1000);
             }
         } catch (InterruptedException e) {
