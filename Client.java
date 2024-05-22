@@ -173,6 +173,7 @@ public class Client extends JFrame implements ActionListener {
         String message = "22222";// テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
         try {
             writer.println("make a room");
+            System.out.println("make a room書き込み");
             // ルームIDを受信
             message = reader.readLine();
             // 先手後手情報の設定
@@ -641,7 +642,7 @@ public class Client extends JFrame implements ActionListener {
 
         // 事前にPlayer側からこちらのユーザ名・相手側のユーザ名・先手後手の情報を受け取っておく
 
-        opponentName = "Player001";// 相手のユーザ名
+        opponentName = getServerMessage();// 相手のユーザ名
 
         setVisible(true);
         while (true) {

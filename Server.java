@@ -117,8 +117,8 @@ class ClientProcThread extends Thread {
                     while (true) {
                         connect = myIn.readLine();
                         if (connect.equals("connect")) {
-                            myOut.println("対戦相手が接続しました");
-                            myOut.flush();
+                            String enemy = myIn.readLine();
+                            myOut.println(enemy + "が接続しました");
                             break;
                         } else if (connect.equals("delete")) {
                             Server.deleteRoom(roomId);
@@ -143,7 +143,19 @@ class ClientProcThread extends Thread {
                     int room = Server.makeRoom(myName);
                     myOut.println(room);
                     myOut.flush();
-                    break;
+
+                    while (true) {
+                        String connect = "";
+                        connect = myIn.readLine();
+                        if (connect.equals("connect")) {
+                            String enemy = myIn.readLine();
+                            myOut.println(enemy + "が接続しました");
+                            break;
+                        } else if (connect.equals("delete")) {
+                            Server.deleteRoom(room);
+                            break;
+                        }
+                    }
                 } else if (Server.enterRoom(Integer.parseInt(myRoom), myName) == 0) {
                     System.out.println("enter");
                     int roomId = Server.makeRoom(myName);
@@ -154,8 +166,8 @@ class ClientProcThread extends Thread {
                     while (true) {
                         connect = myIn.readLine();
                         if (connect.equals("connect")) {
-                            myOut.println("対戦相手が接続しました");
-                            myOut.flush();
+                            String enemy = myIn.readLine();
+                            myOut.println(enemy + "が接続しました");
                             break;
                         } else if (connect.equals("delete")) {
                             Server.deleteRoom(roomId);
@@ -339,8 +351,8 @@ class Server {
         for (int i = num - 1; i <= num; i++) {
             if (flag[i] == true) {
                 out[i].println(str);
-                out[i].flush();//バッファをはき出す＝＞バッファにある全てのデータをすぐに送信する
-                System.out.println("Send messages to client No."+i);
+                out[i].flush();// バッファをはき出す＝＞バッファにある全てのデータをすぐに送信する
+                System.out.println("Send messages to client No." + i);
             }
         }
     }
@@ -446,54 +458,27 @@ class Server {
         in = new BufferedReader[maxConnection];
         out = new PrintWriter[maxConnection];
         myClientProcThread = new ClientProcThread[maxConnection];
-        setDirectoryPath("C:/Users/shun0/university/PL7");
-        boolean listenUser1 = true;
-        boolean listenUse2 = true;
-        boolean connecting = false;
-
+        setDirectoryPath("C:/Users/kou15/PL7");
         int n = 1;
 
         try {
             System.out.println("The server has launched!");
             ServerSocket server = new ServerSocket(10000);// 10000番ポートを利用する
-            while (listenUser1) {
+            while (true) {
                 incoming[n] = server.accept();
-                // flag[n] = true;
+                flag[n] = true;
                 System.out.println("Accept client No." + n);
                 // 必要な入出力ストリームを作成する
-                // isr[n] = new InputStreamReader(incoming[n].getInputStream());
-                // in[n] = new BufferedReader(isr[n]);
-                // out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
+                isr[n] = new InputStreamReader(incoming[n].getInputStream());
+                in[n] = new BufferedReader(isr[n]);
+                out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
 
-                myClientProcThread[1] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]);// 必要なパラメータを渡しスレッドを作成
-                myClientProcThread[1].start();// スレッドを開始する
-                member = n;// メンバーの数を更新する
+                myClientProcThread[n] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]); // 必要なパラメータを渡しスレッドを作成
+                myClientProcThread[n].start(); // スレッドを開始する
+                member = n; // メンバーの数を更新する
                 n++;
-                listenUser1 = false;
             }
-            while (listenUse2) {
-                incoming[n] = server.accept();
-                // flag[n] = true;
-                System.out.println("Accept client No." + n);
-                // 必要な入出力ストリームを作成する
-                // isr[n] = new InputStreamReader(incoming[n].getInputStream());
-                // in[n] = new BufferedReader(isr[n]);
-                // out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
 
-                myClientProcThread[2] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]);// 必要なパラメータを渡しスレッドを作成
-                myClientProcThread[2].start();// スレッドを開始する
-                member = n;// メンバーの数を更新する
-                n++;
-                listenUse2 = false;
-            }
-            connecting = true;
-            while (connecting) {
-                private BufferedReader myInValue = myClientProcThread[1].getMyIn();
-                private PrintWriter myOutValue = myClientProcThread[1].getMyOut();
-                String input = myInValue.readLine();
-                String output = myOutValue.();
-
-            }
         } catch (Exception e) {
             System.err.println("ソケット作成時にエラーが発生しました: " + e);
         }
