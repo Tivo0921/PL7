@@ -1,3 +1,4 @@
+//Player.java
 // 工数1 = 1時間
 
 //パッケージのインポート
@@ -53,7 +54,8 @@ public class Player extends JFrame {
         JLabel passwordLabel = new JLabel("パスワード"); // パスワード入力部ラベル
         JTextField passwordField = new JTextField(20); // パスワード入力部
         JTextField playerNameField = new JTextField(20); // プレイヤー名入力部
-        JButton exit = new JButton("終了");; // 終了ボタン
+        JButton exit = new JButton("終了");
+        ; // 終了ボタン
         JButton ok = new JButton("OK"); // OK(入力情報送信)ボタン
 
         Container contentPane1 = frame.getContentPane();
@@ -75,8 +77,8 @@ public class Player extends JFrame {
                     command = "1";
                     // ログイン情報が受け付けられなかった場合はメッセージを表示
                     // if (!loginAccept) {
-                    //     cautionMessage.setForeground(Color.red);
-                    //     connectionPanelTop.add(loginMessage);
+                    // cautionMessage.setForeground(Color.red);
+                    // connectionPanelTop.add(loginMessage);
                     // }
                 }
             }
@@ -85,46 +87,46 @@ public class Player extends JFrame {
         // 接続できたら
         // ログイン画面描画
         // ログイン情報が受け付けられるまで繰り返し
-            // フレーム設定
-            frame.setSize(500, 300);
-            // 全体のパネル設定(縦に[メッセージ部分のパネル]と[入力部分のパネル]と[ボタン部分のパネル]を並べる)
-            connectionPanel.setLayout(new GridLayout(3, 1));
-            // メッセージ部分のパネル設定
-            connectionPanelTop.setLayout(new FlowLayout());
-            // メッセージ部分のラベル設定(上に余白を入れる)
-            loginMessage.setBorder(BorderFactory.createEmptyBorder(30,30,0,30));
-            // 入力部分のパネル設定
-            connectionPanelCenter.setLayout(new GridLayout(2, 1));
-            // プレイヤ名入力部分のパネル設定
-            centerPanelPlayer.setLayout(new FlowLayout());
-            // プレイヤ名入力部分のパネル設定
-            centerPanelPassword.setLayout(new FlowLayout());
-            // ボタン部分のパネル設定(横に[OKボタン]と[終了ボタン]を並べる
-            connectionPanelBottom.setLayout(new FlowLayout());
-            // ボタン部分の設定
-            ok.addActionListener(connectAction);
-            ok.setActionCommand("1");
-            exit.addActionListener(connectAction);
-            exit.setActionCommand("2");
-            // 各パーツ配置
-            connectionPanelTop.add(loginMessage);
-            connectionPanelCenter.add(centerPanelPlayer);
-            connectionPanelCenter.add(centerPanelPassword);
-            centerPanelPlayer.add(playerNameLabel);
-            centerPanelPlayer.add(playerNameField);
-            centerPanelPassword.add(passwordLabel);
-            centerPanelPassword.add(passwordField);
-            connectionPanelBottom.add(ok);
-            connectionPanelBottom.add(exit);
-            connectionPanel.add(connectionPanelTop);
-            connectionPanel.add(connectionPanelCenter);
-            connectionPanel.add(connectionPanelBottom);
-            contentPane1.add(connectionPanel);
-            frame.setVisible(true);
-        
+        // フレーム設定
+        frame.setSize(500, 300);
+        // 全体のパネル設定(縦に[メッセージ部分のパネル]と[入力部分のパネル]と[ボタン部分のパネル]を並べる)
+        connectionPanel.setLayout(new GridLayout(3, 1));
+        // メッセージ部分のパネル設定
+        connectionPanelTop.setLayout(new FlowLayout());
+        // メッセージ部分のラベル設定(上に余白を入れる)
+        loginMessage.setBorder(BorderFactory.createEmptyBorder(30, 30, 0, 30));
+        // 入力部分のパネル設定
+        connectionPanelCenter.setLayout(new GridLayout(2, 1));
+        // プレイヤ名入力部分のパネル設定
+        centerPanelPlayer.setLayout(new FlowLayout());
+        // プレイヤ名入力部分のパネル設定
+        centerPanelPassword.setLayout(new FlowLayout());
+        // ボタン部分のパネル設定(横に[OKボタン]と[終了ボタン]を並べる
+        connectionPanelBottom.setLayout(new FlowLayout());
+        // ボタン部分の設定
+        ok.addActionListener(connectAction);
+        ok.setActionCommand("1");
+        exit.addActionListener(connectAction);
+        exit.setActionCommand("2");
+        // 各パーツ配置
+        connectionPanelTop.add(loginMessage);
+        connectionPanelCenter.add(centerPanelPlayer);
+        connectionPanelCenter.add(centerPanelPassword);
+        centerPanelPlayer.add(playerNameLabel);
+        centerPanelPlayer.add(playerNameField);
+        centerPanelPassword.add(passwordLabel);
+        centerPanelPassword.add(passwordField);
+        connectionPanelBottom.add(ok);
+        connectionPanelBottom.add(exit);
+        connectionPanel.add(connectionPanelTop);
+        connectionPanel.add(connectionPanelCenter);
+        connectionPanel.add(connectionPanelBottom);
+        contentPane1.add(connectionPanel);
+        frame.setVisible(true);
+
         // ボタンの入力がされるまで待機
         try {
-            while (command == "") {
+            while (command.equals("")) {
                 // System.out.println(command);
                 // System.out.println("何も入力されていない時間");
                 Thread.sleep(100);
@@ -161,7 +163,7 @@ public class Player extends JFrame {
         JPanel mainPanel = new JPanel(); // 全体を覆うパネル
         JPanel mainPanelHead = new JPanel(); // 上部を覆うパネル
         JPanel roomIdPanel = new JPanel(); // ルームID入力部を覆うパネル
-        JLabel playerInfo = new JLabel("ユーザ : "+playerName); // プレイヤ名を表示
+        JLabel playerInfo = new JLabel("ユーザ : " + playerName); // プレイヤ名を表示
         JLabel mainMessage = new JLabel("ルームIDを入力してください");// メインメッセージ表示
         JLabel or = new JLabel("or");// or表示
         JTextField roomIdField = new JTextField(20); // ルームID入力
@@ -182,109 +184,132 @@ public class Player extends JFrame {
                 }
                 // [OKボタン]が押されたらルームIDを送信
                 else if (e.getSource() == ok) {
+                    System.out.println("sasakinodebug command 1");
                     command = "1";
                 }
                 // [新規ルーム作成ボタン]が押されたらルーム作成へ
                 else if (e.getSource() == makeNewRoom) {
+                    System.out.println("sasakinodebug command 2");
                     command = "2";
                 }
             }
         };
 
         // ルームIDが受理されるまで繰り返し
-            // マッチ画面フレーム
-            matchFrame.setSize(500,300);
-            // 全体パネル
-            mainPanel.setLayout(new GridLayout(5, 1));
-            // 全体パネル>上部パネル
-            mainPanelHead.setLayout(new GridLayout(1, 2));
-            // 中心部パネル>ルームID入力部パネル
-            roomIdPanel.setLayout(new FlowLayout());
-            // メッセージ部分
-            mainMessage.setHorizontalAlignment(JLabel.CENTER);
-            or.setHorizontalAlignment(JLabel.CENTER);
-            // 対戦成績閲覧ボタン
-            playRecord.addActionListener(matchAction);
-            playRecord.setPreferredSize(new Dimension(200, 100));
-            // OK(ルームID送信)ボタン
-            ok.addActionListener(matchAction);
-            ok.setActionCommand("1");
-            // 新規ルーム作成ボタン
-            makeNewRoom.addActionListener(matchAction);
-            makeNewRoom.setPreferredSize(new Dimension(200, 100));
-            // 各パーツ配置
-            mainPanelHead.add(playerInfo);
-            mainPanelHead.add(playRecord);
-            roomIdPanel.add(roomIdField);
-            roomIdPanel.add(ok);
-            mainPanel.add(mainPanelHead);
-            mainPanel.add(mainMessage);
-            mainPanel.add(roomIdPanel);
-            mainPanel.add(or);
-            mainPanel.add(makeNewRoom);
-            contentPane2.add(mainPanel, BorderLayout.CENTER);
-            matchFrame.setVisible(true);
-        
-        while(true){
+        // マッチ画面フレーム
+        matchFrame.setSize(500, 300);
+        // 全体パネル
+        mainPanel.setLayout(new GridLayout(5, 1));
+        // 全体パネル>上部パネル
+        mainPanelHead.setLayout(new GridLayout(1, 2));
+        // 中心部パネル>ルームID入力部パネル
+        roomIdPanel.setLayout(new FlowLayout());
+        // メッセージ部分
+        mainMessage.setHorizontalAlignment(JLabel.CENTER);
+        or.setHorizontalAlignment(JLabel.CENTER);
+        // 対戦成績閲覧ボタン
+        playRecord.addActionListener(matchAction);
+        playRecord.setPreferredSize(new Dimension(200, 100));
+        // OK(ルームID送信)ボタン
+        ok.addActionListener(matchAction);
+        ok.setActionCommand("1");
+        // 新規ルーム作成ボタン
+        makeNewRoom.addActionListener(matchAction);
+        makeNewRoom.setPreferredSize(new Dimension(200, 100));
+        // 各パーツ配置
+        mainPanelHead.add(playerInfo);
+        mainPanelHead.add(playRecord);
+        roomIdPanel.add(roomIdField);
+        roomIdPanel.add(ok);
+        mainPanel.add(mainPanelHead);
+        mainPanel.add(mainMessage);
+        mainPanel.add(roomIdPanel);
+        mainPanel.add(or);
+        mainPanel.add(makeNewRoom);
+        contentPane2.add(mainPanel, BorderLayout.CENTER);
+        matchFrame.setVisible(true);
+
+        while (true) {
+            System.out.println("sasakinodebug infinit");
             // ボタンの入力がされるまで待機
-            try {
-                command = "";
-                while (command == "") {
-                    Thread.sleep(100);
-                }
-            } catch (InterruptedException e) {
-                System.out.println("Error: InterruptedException (in マッチ画面)");
-            }
+            // try {
+            // command = "";
+            // while (command.equals("")) {
+            // System.out.println("何も入力されていない時間");
+            // Thread.sleep(100);
+            // }
+            // } catch (InterruptedException e) {
+            // System.out.println("Error: InterruptedException (in マッチ画面)");
+            // }
 
             // 結果によって分岐
             if (command.equals("1")) {
-                if(roomIdField.getText().matches("^\\d{1,9}$")){
+                if (roomIdField.getText().matches("^\\d{1,9}$")) {
                     System.out.println("マッチ画面再描画");
-                roomId = Integer.parseInt(roomIdField.getText());
-                System.out.println(roomId+"が入力された");
-                // クライアントプログラムから該当ルームの有無を受け取る
-                inputRoomId = client.acceptRoomID(roomId);
-                System.out.println(inputRoomId+"でルームIDが返された");
-                // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
-                if (inputRoomId!=roomId) {
-                    // ルームIDが存在しなかった場合は新規ルーム作成
-                    roomId = inputRoomId;
+                    roomId = Integer.parseInt(roomIdField.getText());
+                    System.out.println(roomId + "が入力された");
+                    // クライアントプログラムから該当ルームの有無を受け取る
+                    inputRoomId = client.acceptRoomID(roomId); // テスト用にコメントアウト
+                    System.out.println(inputRoomId + "でルームIDが返された");
+                    // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
+                    if (inputRoomId != roomId) {
+                        // ルームIDが存在しなかった場合は新規ルーム作成
+                        roomId = inputRoomId;
+                        matchFrame.setVisible(false);
+                        makeRoom(playerName);
+                        matchFrame.setVisible(true);
+                        System.out.println("ルームが存在しなかったため新規ルームを作成");
+                    } else {
+                        successMatching = true;
+                        System.out.println(inputRoomId + "のルームがあったので入室");
+                    }
+                    roomId = Integer.parseInt(roomIdField.getText());
+                    System.out.println(roomId + "が入力された");
+                    // クライアントプログラムから該当ルームの有無を受け取る
+                    inputRoomId = client.acceptRoomID(roomId);
+                    System.out.println(inputRoomId + "でルームIDが返された");
+                    // System.out.println("クライアントプログラムから該当ルームの有無を受け取る");
+                    if (inputRoomId != roomId) {
+                        // ルームIDが存在しなかった場合は新規ルーム作成
+                        roomId = inputRoomId;
+                        matchFrame.setVisible(false);
+                        makeRoom(playerName);
+                        matchFrame.setVisible(true);
+                        System.out.println("ルームが存在しなかったため新規ルームを作成");
+                    } else {
+                        successMatching = true;
+                        System.out.println("サーバからの相手のユーザ名情報の送信待ち");
+                        client.opponentName = client.getServerMessage();// 今度は相手のユーザ名が送られてくるのでそれを受け取って反映
+                        System.out.println("サーバからの相手のユーザ名情報を受け取りました");
+                        System.out.println(inputRoomId + "のルームがあったので入室");
+
+                    }
+                }
+
+                if (command.equals("2")) {
                     matchFrame.setVisible(false);
+                    System.out.println("sasakinodebug jump1");
                     makeRoom(playerName);
+                    System.out.println("sasakinodebug jump2");
                     matchFrame.setVisible(true);
-                    System.out.println("ルームが存在しなかったため新規ルームを作成");
-                }else{
-                    successMatching=true;
-                    System.out.println("サーバからの相手のユーザ名情報の送信待ち");
-                    client.opponentName = client.getServerMessage();//今度は相手のユーザ名が送られてくるのでそれを受け取って反映
-                    System.out.println("サーバからの相手のユーザ名情報を受け取りました");
-                    System.out.println(inputRoomId+"のルームがあったので入室");
+                    System.out.println("sasakinodebug jump3");
                 }
+
+                if (command.equals("3")) {
+                    displayPlayRecord();
+                    command = "";
                 }
-            } 
 
-            if (command.equals("2")) {
-                matchFrame.setVisible(false);
-                makeRoom(playerName);
-                matchFrame.setVisible(true);
-            } 
-
-            if (command.equals("3")) {
-                displayPlayRecord();
-                command = "";
-            } 
-
-            // ルームIDが受理されたらマッチ確認画面へ遷移
-            if (successMatching) {
-                matchFrame.setVisible(false);
-                client.firstMove = false; //自分が後手であることをクライアントに通知
-                // マッチ確認画面描画
-                displayMatching();
-                matchFrame.setVisible(true);
+                // ルームIDが受理されたらマッチ確認画面へ遷移
+                if (successMatching) {
+                    matchFrame.setVisible(false);
+                    client.firstMove = false; // 自分が後手であることをクライアントに通知
+                    // マッチ確認画面描画
+                    displayMatching();
+                    matchFrame.setVisible(true);
+                }
             }
         }
-
-        
     }
 
     // 工数0
@@ -292,7 +317,7 @@ public class Player extends JFrame {
     public void displayPlayRecord() {
         // クライアントプログラムで対戦成績を描画
         System.out.println("対戦成績閲覧を選択");
-        client.displayGameRecord(); // テスト用にコメントアウト
+        client.displayGameRecord();
         System.out.println("クライアントプログラムで対戦成績を描画");
     }
 
@@ -302,19 +327,19 @@ public class Player extends JFrame {
 
         command = "2";
 
-        //IDが-1のときはルーム未作成を表す
-        if(roomId == -1){
-            // クライアントプログラムからルームIDの取得
-            roomId = client.getRoomID(); // テスト用にコメントアウト
-            System.out.println("クライアントプログラムからルームIDを取得");
-        }
+        // IDが-1のときはルーム未作成を表す
+        // if (roomId == -1) {
+        // クライアントプログラムからルームIDの取得
+        roomId = client.getRoomID(); // テスト用にコメントアウト
+        System.out.println("クライアントプログラムからルームIDを取得");
+        // }
 
         JFrame roomFrame = new JFrame("ルーム作成"); // ルーム作成画面
         JPanel roomPanel = new JPanel(); // 全体を覆うパネル
         JPanel roomIdPanel = new JPanel(); // ルームID表示部パネル
         JPanel roomPanelTop = new JPanel(); // 上部パネル
         JLabel roomIdIs = new JLabel("あなたのルームIDは");
-        JLabel roomIdLabel = new JLabel(Integer.toString(inputRoomId));
+        JLabel roomIdLabel = new JLabel(Integer.toString(roomId));
         JLabel desuLabel = new JLabel("です");
         JLabel waiting = new JLabel("マッチ待機中");
         JButton exitRoom = new JButton("キャンセル");
@@ -322,20 +347,21 @@ public class Player extends JFrame {
         roomFrame.setBounds(450, 300, 600, 400);
         roomFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        ActionListener makeRoomAction = new ActionListener(){
+        ActionListener makeRoomAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // クライアントプログラムを介してサーバプログラムにルームIDを削除してもらう
-                client.deleteRoomID(); // テスト用にコメントアウト
+                System.out.println("sasakinodebug");
+                client.getRoomID(); // テスト用にコメントアウト
                 System.out.println("クライアントプログラムを介してサーバプログラムにルームIDを削除してもらう");
                 // マッチ画面に戻る
                 roomFrame.setVisible(false);
-                roomId = -1;    //ルーム未作成を表すID -1 に変更
+                roomId = -1; // ルーム未作成を表すID -1 に変更
                 command = "";
             }
         };
 
         // ルーム作成画面のフレーム
-        roomFrame.setSize(500,300);
+        roomFrame.setSize(500, 300);
         // 画面全体のパネル
         roomPanel.setLayout(new GridLayout(4, 1));
         // 上部パネル
@@ -368,16 +394,20 @@ public class Player extends JFrame {
         // ボタンの入力がされるまで・または対戦相手が現れるまで待機
         try {
             command = "";
-            while (command == "") {
+            while (command.equals("")) {
                 Thread.sleep(1000);
-                if(client.checkServerMessage()){//クライアントプログラムが対戦相手が現れた旨のメッセージを受け取った場合
-                    System.out.println("サーバからの相手のユーザ名情報の送信待ち");
-                    client.opponentName = client.getServerMessage();//今度は相手のユーザ名が送られてくるのでそれを受け取って反映
-                    System.out.println("サーバからの相手のユーザ名情報を受け取りました");
+                if (client.checkServerMessage()) {// クライアントプログラムが対戦相手が現れた旨のメッセージを受け取ったら
                     roomFrame.setVisible(false);
-                    System.out.println("display呼び出しB");
-                    displayMatching();//マッチ確認画面に移行
-                    break;
+                    client.firstMove = true; // 自分が先手であることをクライアントに通知
+                    if (client.checkServerMessage()) {// クライアントプログラムが対戦相手が現れた旨のメッセージを受け取った場合
+                        System.out.println("サーバからの相手のユーザ名情報の送信待ち");
+                        client.opponentName = client.getServerMessage();// 今度は相手のユーザ名が送られてくるのでそれを受け取って反映
+                        System.out.println("サーバからの相手のユーザ名情報を受け取りました");
+                        client.sendServerMessage("connect");// 接続完了の旨をサーバに送信
+                        roomFrame.setVisible(false);
+                        displayMatching();// マッチ確認画面に移行
+                        break;
+                    }
                 }
             }
         } catch (InterruptedException e) {
@@ -389,7 +419,7 @@ public class Player extends JFrame {
             System.out.println("ルーム作成再描画");
             contentPane3.removeAll();
             contentPane3.repaint();
-        }    
+        }
     }
 
     // 工数0.5,進捗0.5
@@ -408,7 +438,7 @@ public class Player extends JFrame {
         matchingFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // マッチ確認画面のフレーム
-        matchingFrame.setSize(500,300);
+        matchingFrame.setSize(500, 300);
         // 画面全体のパネル
         matchingPanel.setLayout(new BorderLayout());
         // 対戦相手表示部パネル
@@ -416,7 +446,7 @@ public class Player extends JFrame {
         // 対戦相手の名前は少し大きく表示する
         opponentName.setFont(new Font("Century", Font.BOLD, 30));
         // [対戦開始ボタン]の設定
-        ActionListener displayMatchingAction = new ActionListener(){
+        ActionListener displayMatchingAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 command = "start";
             }
@@ -436,18 +466,19 @@ public class Player extends JFrame {
         command = "";
         // ボタンの入力がされるまで待機
         try {
-            while (command == "") {
+            while (command.equals("")) {
                 Thread.sleep(1000);
             }
         } catch (InterruptedException e) {
             System.out.println("Error: InterruptedException (in マッチ確認画面描画)");
         }
-        if(command.equals("start")){
+        if (command.equals("start")) {
             matchingFrame.setVisible(false);
             // クライアントプログラムの対戦画面へ
             System.out.println("クライアントプログラムの対戦画面へ");
             boolean rematch = client.game();
-            if(rematch) makeRoom(playerName);//再戦する場合は同じルームIDで再び待機
+            if (rematch)
+                makeRoom(playerName);// 再戦する場合は同じルームIDで再び待機
         }
     }
 
@@ -493,7 +524,7 @@ public class Player extends JFrame {
         return true;
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Player player = new Player();
         player.setupApp();
     }
