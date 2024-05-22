@@ -1,8 +1,5 @@
 //Client.java
-//クライアントプログラム 担当: さどゆう
-/*残りタスク: 
-※サーバとの接続全般
-*/
+//クライアントプログラム 担当: 佐渡
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.Scanner;
 
 public class Client extends JFrame implements ActionListener {
     // グローバル変数
@@ -47,7 +43,7 @@ public class Client extends JFrame implements ActionListener {
     private PrintWriter writer;
     private BufferedReader reader;
 
-    /* コンストラクタ 工数:1 進捗:1 */
+    /* コンストラクタ */
     public Client() {
         // ウィンドウ設定
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);// ウィンドウを閉じる場合の処理
@@ -68,7 +64,7 @@ public class Client extends JFrame implements ActionListener {
         myOthello = new Othello(0, 0);// Otelloインスタンスを作成
     }
 
-    /* 接続要求 工数:0.25 進捗:0.25 */
+    /* 接続要求 */
     public boolean connectDemand() {
         // 接続
         try {
@@ -85,7 +81,7 @@ public class Client extends JFrame implements ActionListener {
         }
     }
 
-    /* 再接続選択 工数:2.25 進捗:2.25 */
+    /* 再接続選択 */
     public boolean reconnectSelect() {
         // 画面表示をリセット
         c.removeAll();
@@ -105,10 +101,11 @@ public class Client extends JFrame implements ActionListener {
         c.add(button1);// ペインに追加
         c.add(button2);
         c.repaint();// 再描画
+        setVisible(true);
         command = ""; // コマンドの入力内容を検知する変数をリセットしておく
         // ボタンの入力がされるまで待機
         try {
-            while (command == "") {
+            while (command.equals("")) {
                 Thread.sleep(100);
             }
         } catch (InterruptedException e) {
@@ -137,7 +134,7 @@ public class Client extends JFrame implements ActionListener {
             return false;
     }
 
-    /* ログイン情報受付 工数:0.5 */
+    /* ログイン情報受付 */
     public boolean loginInfoAccept(String playerName, String password) {
         // 受け取った情報をそのままソケット通信で送る
         // ※その情報が存在しない場合は新たなユーザとして登録する
@@ -147,21 +144,23 @@ public class Client extends JFrame implements ActionListener {
         return true;
     }
 
-    /* 入力されたルームID受付 工数:1 */
+    /* 入力されたルームID受付 */
     public int acceptRoomID(int roomID) {
-        // 引数に入力したルームが存在するかをサーバに問い合わせ、その結果を戻り値として返す
-        // 存在しない場合はそのルームを作成する
-        String message = "11111";// テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
+        // 引数に入力したルームが存在するかをサーバに問い合わせ、存在すれば同じIDをそのまま返す
+        // 存在しない場合は新たなルームを作成し、そのIDを返す
+        String message = "";
         try {
+            //サーバにメッセージを送る
             writer.println("search room");
             writer.println(roomID);
-            // ルームID
-            roomID = Integer.parseInt(reader.readLine());
-            // ユーザー1のIDを受信
+            // ルームIDを受け取る
+            message = reader.readLine();
+            // 相手ユーザーの名前を受信
             opponentName = reader.readLine();
             System.out.println("opponentName = " + opponentName);
-            // 先手後手情報の設定
-            firstMove = false;
+            // 先手後手情報の設定（既存のルームに入ったか、新たなルームを作ったかによって変える）
+            if(roomID == Integer.parseInt(message)) firstMove = false;
+            else firstMove = true;
         } catch (IOException e) {
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
@@ -170,12 +169,13 @@ public class Client extends JFrame implements ActionListener {
 
     /* 作成したルームID取得 */
     public int getRoomID() {
-        String message = "22222";// テスト用ID（サーバからIDを受け取ると上書きされるので問題なし）
+        String message = "";
         try {
             writer.println("make a room");
             System.out.println("make a room書き込み");
             // ルームIDを受信
             message = reader.readLine();
+            System.out.println("opponentName = " + opponentName);
             // 先手後手情報の設定
             firstMove = true;
         } catch (IOException e) {
@@ -190,7 +190,7 @@ public class Client extends JFrame implements ActionListener {
         writer.println("delete");
     }
 
-    /* サーバに接続 工数:0.25 進捗:0.25 */
+    /* サーバに接続 */
     public void connectServer() {
         while (true) {
             if (connectDemand())
@@ -227,7 +227,12 @@ public class Client extends JFrame implements ActionListener {
         return message;
     }
 
-    /* 盤面の初期化 工数:0.25 進捗:0.25 */
+    /* サーバに任意の文字列を送信する */
+    public void sendServerMessage(String message) {
+        writer.println(message);
+    }
+
+    /* 盤面の初期化 */
     public void initBoard() {
         // 盤面の石をすべて取り除く
         for (int i = 0; i < ROW; i++) {
@@ -242,7 +247,7 @@ public class Client extends JFrame implements ActionListener {
         board[4][3] = 2;
     }
 
-    /* 盤面を描画 工数:3 進捗:3 */
+    /* 盤面を描画 */
     public int[][] displayBoard(int[][] board) {
         String myColorName;// 変数: 石の数の表示時、色名を表示するための変数
         String opponentColorName;
@@ -321,7 +326,7 @@ public class Client extends JFrame implements ActionListener {
         }
     }
 
-    /* 対戦相手の操作情報を受信 工数:0.5 進捗:0 */
+    /* 対戦相手の操作情報を受信 */
     public int recieveOpponentMove() {
         int opponentNextOp = 0;
         updateTextArea(1, "対戦相手の番です\n操作を待っています");
@@ -331,26 +336,6 @@ public class Client extends JFrame implements ActionListener {
             int x = Integer.parseInt(boardString.substring(2, 3)); // 2つ目の引数（操作対象のx座標）を取得
             int y = Integer.parseInt(boardString.substring(4, 5)); // 3つ目の引数（操作対象のy座標）を取得
             int opponentColor = 0;// Integer.parseInt(boardString.substring(6,7)); //4つ目の引数（操作対象の色）を取得
-
-            // サーバを介せない時のテスト用（キーボードから座標を指定して石を置く）
-            /*
-             * int x = 0;
-             * int y = 0;
-             * Scanner scanner = new Scanner(System.in);
-             * System.out.println("座標1: ");
-             * String xString = scanner.next();
-             * if(xString.equals("x")){
-             * opponentNextOp = 1;
-             * }else if(xString.equals("p")){
-             * opponentNextOp = 2;
-             * }else{
-             * opponentNextOp = 0;
-             * System.out.println("座標2: ");
-             * String yString = scanner.next();
-             * x = Integer.parseInt(xString);
-             * y = Integer.parseInt(yString);
-             * }
-             */
 
             if (opponentNextOp == 0) { // 操作の種類:0（石を置く）
                 board = myOthello.calcBoard(x, y, opponentColor); // 実際に盤面を計算
@@ -377,7 +362,7 @@ public class Client extends JFrame implements ActionListener {
         return opponentNextOp; // 相手の操作の種類を戻り値として返す
     }
 
-    /* プレイヤの操作を受付 工数:2 進捗:0.5 */
+    /* プレイヤの操作を受付 */
     public void acceptPlayerMove() {
         // ループを行う（確認ダイアログでキャンセル（いいえ）が選択された場合、クリックしたマスに石が置けなかった場合は
         // 盤面を更新せずもう一度操作を受け付けるため）
@@ -386,21 +371,21 @@ public class Client extends JFrame implements ActionListener {
             command = ""; // コマンドを判別するため、変数を初期化
             // ボタンの入力がされるまで待機
             try {
-                while (command == "") {
+                while (command.equals("")) {
                     Thread.sleep(100);
                 }
             } catch (InterruptedException e) {
                 System.out.println("Error: InterruptedException (in プレイヤの操作を受付)");
             }
             // 押されたボタンによって分岐
-            if (command == "resign") {// 投了ボタンの場合、確認ダイアログを表示
+            if (command.equals("resign")) {// 投了ボタンの場合、確認ダイアログを表示
                 int confirm = JOptionPane.showConfirmDialog(this, "投了します。よろしいですか？", "確認",
                         JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (confirm == JOptionPane.YES_OPTION) {// 確認ダイアログで「はい」が選択されたら
                     nextOp = 1;// 操作の記憶変数を1にして手番終了（このあと相手の手番になる前に投了処理が行われる）
                     break;
                 }
-            } else if (command == "pass") {// パスボタンの場合も、確認ダイアログを表示
+            } else if (command.equals("pass")) {// パスボタンの場合も、確認ダイアログを表示
                 int confirm = JOptionPane.showConfirmDialog(this, "パスします。よろしいですか？", "確認",
                         JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE);
                 if (confirm == JOptionPane.YES_OPTION) {// 確認ダイアログで「はい」が選択されたら
@@ -422,21 +407,21 @@ public class Client extends JFrame implements ActionListener {
         // ループここまで
     }
 
-    /* 操作情報を送信 工数:0.5 進捗:0 */
+    /* 操作情報を送信 */
     public void sendMoveInfo() {
         // 操作情報をStringに変換して送信する
         String boardString = nextOp + "," + placeX + "," + placeY + "," + myColor;
         writer.println(boardString);
     }
 
-    /* 盤面に反映 工数:0.25 進捗:0.25 */
+    /* 盤面に反映 */
     public void updateBoard() {
         c.removeAll(); // 現在表示されているコンポーネントを削除
         displayBoard(board); // 再び描画
         repaint();
     }
 
-    /* 石の数のカウント 工数:0.25 進捗:0.25 */
+    /* 石の数のカウント */
     public int countStone(int[][] board, int color) {
         // 0なら黒、1なら白、2なら空白マスがいくつあるかを数える
         int count = 0;
@@ -449,7 +434,7 @@ public class Client extends JFrame implements ActionListener {
         return count;
     }
 
-    /* 対戦終了確認 工数:0.5 進捗:0.25 */
+    /* 対戦終了確認 */
     public boolean checkGameEnd(int x) {
         // 白黒双方が石を置けるかの情報をOthelloクラスから受け取り、どちらも置けない場合は対戦終了(trueを返す)
         boolean whiteMovable = myOthello.searchBoard(board, 1);
@@ -460,14 +445,14 @@ public class Client extends JFrame implements ActionListener {
             return false;
     }
 
-    /* 対戦結果をサーバに送信 工数: 0.25 進捗:0 */
+    /* 対戦結果をサーバに送信 */
     public void sendGameResult(int result) {
         writer.println("match end");
         // 勝ちなら0、負けなら1、引き分けなら2を送信
         writer.println(playerID + "," + result);
     }
 
-    /* 勝敗分を表示 工数:3 進捗:3 */
+    /* 勝敗分を表示 */
     // 戻り値boolean（再戦するかどうかの選択）
     public boolean displayResult(int gameResult) {
         System.out.println("gameResult = " + gameResult + ", ");
@@ -538,7 +523,7 @@ public class Client extends JFrame implements ActionListener {
         command = ""; // コマンドを判別するため、変数を初期化
         // ボタンの入力がされるまで待機
         try {
-            while (command == "") {
+            while (command.equals("")) {
                 Thread.sleep(100);
             }
         } catch (InterruptedException e) {
@@ -547,15 +532,13 @@ public class Client extends JFrame implements ActionListener {
         // 今表示されているものをすべて取り除く
         c.removeAll();
         // 押されたボタンによって分岐
-        if (command == "rematch")
+        if (command.equals("rematch"))
             return true;
-        else if (command == "rematch")
-            return false;
         else
             return false;
     }
 
-    /* 対戦成績表示 工数:3 進捗:2 */
+    /* 対戦成績表示 */
     public void displayGameRecord() {
 
         // テスト用の仮データ
@@ -629,21 +612,24 @@ public class Client extends JFrame implements ActionListener {
         myFrame.setVisible(true); // 最後にJFrameの表示処理
     }
 
-    /* 切断のメッセージを表示 工数:0.25 進捗:0 */
+    /* 切断のメッセージを表示 */
     public void displayDisconnectionMessage() {
         JLabel label = new JLabel("相手プレイヤの接続が切断されました");
         JOptionPane.showMessageDialog(this, label);
     }
 
-    /* ゲーム全体（元々main内で行う処理だったが、インスタンスのやりとりに問題があったためPlayerから呼び出してもらう形に） */
+    /* ゲーム全体（ゲーム進行の大枠。マッチングが終了次第Playerプログラムから呼び出される） */
     public boolean game() {
         int turn;
         boolean rematch;
 
+<<<<<<< HEAD
         // 事前にPlayer側からこちらのユーザ名・相手側のユーザ名・先手後手の情報を受け取っておく
 
         opponentName = getServerMessage();// 相手のユーザ名
 
+=======
+>>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
         setVisible(true);
         while (true) {
             int opponentNextOp = 0;

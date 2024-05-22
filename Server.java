@@ -1,4 +1,3 @@
-
 //Server.java
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -473,12 +472,21 @@ class Server {
                 in[n] = new BufferedReader(isr[n]);
                 out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
 
+<<<<<<< HEAD
                 myClientProcThread[n] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]); // 必要なパラメータを渡しスレッドを作成
+=======
+                myClientProcThread[n] = new ClientProcThread(n,incoming[n] ,isr[n],in[n], out[n]); // 必要なパラメータを渡しスレッドを作成
+>>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
                 myClientProcThread[n].start(); // スレッドを開始する
                 member = n; // メンバーの数を更新する
                 n++;
             }
+<<<<<<< HEAD
 
+=======
+            
+        
+>>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
         } catch (Exception e) {
             System.err.println("ソケット作成時にエラーが発生しました: " + e);
         }
