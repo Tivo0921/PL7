@@ -1,4 +1,5 @@
-//Server.java
+
+//Server.java 5/30
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.PrintWriter;
@@ -13,210 +14,167 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 //スレッド部（各クライアントに応じて）
 class ClientProcThread extends Thread {
-    private int number;// 自分の番号
-    public BufferedReader myIn;
-    private InputStreamReader myIsr;
-    public PrintWriter myOut;
-    private String myName;// 接続者の名前
+    private Socket socket;
+    private InputStreamReader inputStreamReader;
+    // 接続者の情報
+    private int myNumber;
+    private String myName;
     private String myPass;
     private String myRoom;
 
-    public ClientProcThread(int n, Socket i, InputStreamReader isr, BufferedReader in, PrintWriter out) {
-        number = n;
-        myIsr = isr;
-        myIn = in;
-        myOut = out;
+    public static String directoryPath;
+
+    private BufferedReader in;
+    private PrintWriter out;
+
+    public ClientProcThread(int n, Socket socket) {
+        this.socket = socket;
+        this.myNumber = n;
+        try {
+            this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.out = new PrintWriter(socket.getOutputStream(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    public BufferedReader getMyIn() {
-        return myIn;
+    public BufferedReader getIn() {
+        return in;
     }
 
-    public PrintWriter getMyOut() {
-        return myOut;
+    public PrintWriter getOut() {
+        return out;
+    }
+
+    public void listen() {
+        try {
+            while (!in.ready()) {
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Thread sleep error");
+        } catch (IOException e) {
+            System.out.println("BufferedReader ready error");
+            e.printStackTrace();
+        }
     }
 
     public void run() {
+        directoryPath = "C:/Users/shun0/university/PL7";
         try {
-            myOut.println("Hello, client No." + number);// 初回だけ呼ばれる
-            while (true) {
-                String receivedLogin = myIn.readLine();
-                System.out.println(receivedLogin + "jjjjjjjjjj");
+            // ログイン画面でログイン受付
+            out.println("Hello, client No." + myNumber);
+            listen();
+            String receivedLogin = in.readLine();
+            System.out.println(receivedLogin + "ログイン情報を受け付けた");
+            // カンマを基に名前とパスワードに分割
+            String[] splitedReceivedLogin = receivedLogin.split(",");
+            System.out.println(splitedReceivedLogin[0] + splitedReceivedLogin[1] + "ログインを受け付けた");
 
-                // カンマを基に名前とパスワードに分割
-                String[] splitReceivedLogin = receivedLogin.split(",");
-                System.out.println(splitReceivedLogin.length + "kkkkkkkkkk");
-                System.out.println("eeeeeeeeeeeeeeee");
-                for (int i = 0; i < splitReceivedLogin.length; i++) {
-                    System.out.println(splitReceivedLogin[i]);
-                }
-                myName = splitReceivedLogin[0];// 初めて接続したときの一行目は名前
-                myPass = splitReceivedLogin[1];
-                // jjj
-
-                if (!UserRepository.exist(myName)) {
-
-                    UserRepository.addUser(myName, myPass);
-                    break;
-                }
+            for (int i = 0; i < splitedReceivedLogin.length; i++) {
+                System.out.println(splitedReceivedLogin[i]);
             }
-            while (true) {
-                myRoom = myIn.readLine();
-                if (myRoom.equals("View Results")) {
-                    List<String> user = UserRepository.search(myName);
-                    List<String> result = new ArrayList<>(user.subList(3, 6));
-                    myOut.println(result);
-                    myOut.flush();
-
-                    // myOut.println(Server.countPlayRecord());
-                    // for (int i = 1; i <= Server.countPlayRecord(); i++) {
-
-                    // // 二次元配列を文字列に変換
-                    // StringBuilder sb = new StringBuilder();
-                    // for (int p = 0; p < result.length; p++) {
-                    // for (int j = 0; j < result[p].length; j++) {
-                    // sb.append(result[p][j]);
-                    // if (j < result[p].length - 1) {
-                    // sb.append(",");
-                    // }
-                    // }
-                    // if (p < result.length - 1) {
-                    // sb.append(";");
-                    // }
-                    // }
-                    // String resultString = sb.toString();
-                    // myOut.println(Server.serveName(i) + ",id:" + resultString);
-                    // myOut.flush();
-                    // }
-                } else if (myRoom.equals("search room")) {
-                    System.out.println("search room");
-                    String roomId = myIn.readLine();
+            myName = splitedReceivedLogin[0];
+            myPass = splitedReceivedLogin[1];
+            if (!UserRepository.exist(myName)) {
+                UserRepository.addUser(myName, myPass);
+            }
+            while (true) {// マッチ画面の操作を受け付ける
+                String roomId = "";
+                listen();
+                String receivedMessage = in.readLine();
+                if (receivedMessage.equals("View Results")) {
+                    out.println(UserRepository.convertListToString(UserRepository.readUser()));
+                    out.flush();
+                } else if (receivedMessage.equals("search room")) {
+                    listen();
+                    roomId = in.readLine();
                     System.out.println(roomId);
                     if (RoomRepository.exist(roomId)) {
+
                         List<String> room = RoomRepository.search(roomId);
+                        out.println(room.get(0) + "," + room.get(1)); // ルームIDとUser1の名前を返す
+                        out.flush();
                         RoomRepository.addUser2(roomId, myName);
-                        myOut.println(room.get(0));
-                        myOut.println(room.get(1));
-
-                        myOut.flush();
-                    } else {
-                        myOut.println(0);
-                        myOut.flush();
+                        Server.SendAll("connected", myName, myNumber);
                     }
-                } else if (myRoom.equals("make a room")) {
-                    System.out.println("enter");
-                    int roomId = Server.makeRoom(myName);
-                    String connect = "";
-                    myOut.println(roomId);
-                    myOut.flush();
-
-                    while (true) {
-                        connect = myIn.readLine();
-                        if (connect.equals("connect")) {
-                            String enemy = myIn.readLine();
-                            myOut.println(enemy + "が接続しました");
-                            break;
-                        } else if (connect.equals("delete")) {
-                            Server.deleteRoom(roomId);
-                            break;
-                        }
-                    }
-
-                    if (connect.equals("delete")) {
-                        continue;
-                    } else {
-                        break;
-                    }
-                } else if (Server.enterRoom(Integer.parseInt(myRoom), myName) == 1) {
-                    myOut.println(myRoom);
-                    myOut.flush();
-                    String check = "connected";
-                    Server.SendAll(check, myName, number);
                     break;
-                } else if (Server.enterRoom(Integer.parseInt(myRoom), myName) == 2) {
-                    myOut.println("ルームが満員です。ルームを作成してください");
-                    myOut.flush();
-                    int room = Server.makeRoom(myName);
-                    myOut.println(room);
-                    myOut.flush();
-
-                    while (true) {
-                        String connect = "";
-                        connect = myIn.readLine();
-                        if (connect.equals("connect")) {
-                            String enemy = myIn.readLine();
-                            myOut.println(enemy + "が接続しました");
-                            break;
-                        } else if (connect.equals("delete")) {
-                            Server.deleteRoom(room);
-                            break;
-                        }
-                    }
-                } else if (Server.enterRoom(Integer.parseInt(myRoom), myName) == 0) {
-                    System.out.println("enter");
-                    int roomId = Server.makeRoom(myName);
+                } else if (receivedMessage.equals("make a room")) { // roomIdに直した
+                    roomId = Server.makeRoom(myName);
                     String connect = "";
-                    myOut.println(roomId);
-                    myOut.flush();
-
-                    while (true) {
-                        connect = myIn.readLine();
-                        if (connect.equals("connect")) {
-                            String enemy = myIn.readLine();
-                            myOut.println(enemy + "が接続しました");
-                            break;
-                        } else if (connect.equals("delete")) {
-                            Server.deleteRoom(roomId);
-                            break;
-                        }
-                    }
-
-                    if (connect.equals("delete")) {
-                        continue;
-                    } else {
+                    out.println(roomId);
+                    out.flush();
+                    listen();
+                    connect = in.readLine();
+                    if (connect.equals("connect")) {
+                        listen();
+                        String enemy = RoomRepository.search(roomId).get(2);
+                        out.println(enemy);
+                        out.flush();
+                        break;
+                    } else if (connect.equals("delete")) {
+                        Server.deleteRoom(roomId);
                         break;
                     }
+                } else {
+                    break;
                 }
             }
-            System.out.println("broke");
 
-            while (true) {// 無限ループで，ソケットへの入力を監視する
-                String str = myIn.readLine();
+            while (true) {// 対戦画面の操作を受け付ける
+                listen();
+                String str = in.readLine();
+                System.out.println("str = " + str);
                 // match endを受け取ったら対戦終了
                 if (str.equals("match end")) {
-                    String receivedResults1 = myIn.readLine();
-                    String[] splitReceivedResults1 = receivedResults1.split(",");
-                    String resultId1 = splitReceivedResults1[0];
-                    String result1 = splitReceivedResults1[1];
-                    Server.renewRecord(Integer.parseInt(result1), Integer.parseInt(resultId1));
+                    listen();
+                    String receivedResults1 = in.readLine();
+                    String[] splitedReceivedResults1 = receivedResults1.split(",");
+                    String name1 = splitedReceivedResults1[0];
+                    String result1 = splitedReceivedResults1[1];
+                    Server.renewRecord(Integer.parseInt(result1), name1);
 
-                    String receivedResults2 = myIn.readLine();
+                    listen();
+                    String receivedResults2 = in.readLine();
                     String[] splitReceivedResults2 = receivedResults2.split(",");
-                    String resultId2 = splitReceivedResults2[0];
+                    String name2 = splitReceivedResults2[0];
                     String result2 = splitReceivedResults2[1];
-                    Server.renewRecord(Integer.parseInt(result2), Integer.parseInt(resultId2));
+                    Server.renewRecord(Integer.parseInt(result2), name2);
 
-                    Server.deleteRoom(Integer.parseInt(myRoom));
-
+                    Server.deleteRoom(myRoom);
                     break;
                 }
-
-                System.out.println("Received from client No." + number + "(" + myName + "), Messages: " + str);
                 if (str != null) {// このソケット（バッファ）に入力があるかをチェック
-                    Server.SendAll(str, myName, number);// サーバに来たメッセージは接続しているクライアント全員に配る
-                    Server.SendAll(str, myName, number);// サーバに来たメッセージは接続しているクライアント全員に配る
+                    Server.SendAll(str, myName, myNumber);// サーバに来たメッセージは接続しているクライアント全員に配る
                 }
             }
         } catch (Exception e) {
             // ここにプログラムが到達するときは，接続が切れたとき
-            System.out.println("Disconnect from client No." + number + "(" + myName + ")");
             e.printStackTrace();
-            Server.SetFlag(number, false);// 接続が切れたのでフラグを下げる
+            Server.SetFlag(myNumber, false);// 接続が切れたのでフラグを下げる
         }
     }
+
+    public static void main(String[] args) {
+    }
+
+    public void sendMessage(String message) {
+        // if(out != null){
+        try {
+            out.flush();
+            out.println(message);
+            out.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // }
+    }
+
 }
 
 class Server {
@@ -234,12 +192,14 @@ class Server {
 
     public static String directoryPath;
 
+    public static Set<ClientProcThread> myClientProcThreads = ConcurrentHashMap.newKeySet(); // final に直したらいけた
+
     public static void setDirectoryPath(String path) {
-        directoryPath = path.endsWith("/") ? path : path + "/";
+        directoryPath = path;
     }
 
     public static boolean readUserID1(String myName, String myPass) {
-        String fileName = directoryPath + "User.txt";
+        String fileName = "C:/Users/shun0/university/PL7/User.txt";
         boolean existlogin = false;
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -261,7 +221,7 @@ class Server {
     }
 
     public static boolean readUserID2(String myName, String myPass) {
-        String fileName = directoryPath + "User.txt";
+        String fileName = "C:/Users/shun0/university/PL7/User.txt";
         boolean loginFalse = false;
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -282,31 +242,8 @@ class Server {
         return loginFalse;
     }
 
-    // public static String serveName(int id) {
-
-    // String fileName = directoryPath + "User.txt";
-    // String uName = "";
-    // try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-    // String line;
-    // while ((line = reader.readLine()) != null) {
-    // String[] parts = line.split(",");
-    // if (parts.length != 6) {
-    // continue;
-    // }
-    // int uid = Integer.parseInt(parts[0]);
-    // String Name = parts[1];
-    // if (uid == id) {
-    // uName = Name;
-    // }
-    // }
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // }
-    // return uName;
-    // }
-
     public static int countPlayRecord() {
-        String fileName = directoryPath + "Result.txt";
+        String fileName = "C:/Users/shun0/university/PL7/User.txt";
         int cnt = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -320,7 +257,7 @@ class Server {
     }
 
     public static int[][] transferPlayRecord(int id) {
-        String fileName = directoryPath + "Result.txt";
+        String fileName = "C:/Users/shun0/university/PL7/User.txt";
         List<int[]> resultsList = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -344,149 +281,55 @@ class Server {
         return resultsList.toArray(new int[resultsList.size()][]);
     }
 
-    // 全員にメッセージを送る
-    public static void SendAll(String str, String myName, int num) {
-        // 送られた来たメッセージを接続している全員に配る
-        for (int i = num - 1; i <= num; i++) {
-            if (flag[i] == true) {
-                out[i].println(str);
-                out[i].flush();// バッファをはき出す＝＞バッファにある全てのデータをすぐに送信する
-                System.out.println("Send messages to client No." + i);
-            }
-        }
-    }
-
     // フラグの設定を行う
     public static void SetFlag(int n, boolean value) {
         flag[n] = value;
     }
 
-    // public static void readRoomID() {
-    // List<String> fileContent = readRoomIDFile();
-    // for (String line : fileContent) {
-    // String[] parts = line.split(",");
-    // if (parts.length != 3) {
-    // continue;
-    // }
-    // int roomId = Integer.parseInt(parts[0]);
-    // String user1 = parts[1];
-    // String user2 = parts[2];
-    // System.out.println("ID: " + roomId + ", User1: " + user1 + ", User2: " +
-    // user2);
-    // }
-    // }
-
-    public synchronized static int makeRoom(String user1) {
+    public synchronized static String makeRoom(String user1) {
         String newRoomId = RoomRepository.addRoom();
         RoomRepository.addUser1(newRoomId, user1);
-        return Integer.parseInt(newRoomId);
+        return newRoomId;
     }
 
-    public synchronized static int enterRoom(int roomId, String user2) {
-        if (!RoomRepository.exist(String.valueOf(roomId))) {
-            String newRoomId = RoomRepository.addRoom();
-            RoomRepository.addUser1(newRoomId, user2);
-            return 0;
-        }
-
-        List<String> room = RoomRepository.search(String.valueOf(roomId));
-        if (room.get(2).equals("0")) {
-            RoomRepository.addUser2(String.valueOf(roomId), user2);
-            return 1;
-        }
-        return 2;
-    }
-
-    public synchronized static void deleteRoom(int roomId) {
+    public synchronized static void deleteRoom(String roomId) {
         RoomRepository.deleteRoom(String.valueOf(roomId));
     }
 
-    public synchronized static void renewRecord(int result, int id) {
-        String userName = RoomRepository.search(String.valueOf(id)).get(1);
+    public synchronized static void renewRecord(int result, String name) {
+        String userName = UserRepository.search(name).get(1);
         UserRepository.updateRecord(result, userName);
+    }
 
-        // String fileName = directoryPath + "Result.txt";
-        // List<String> fileContent = new ArrayList<>();
-        // boolean userFound = false;
-
-        // try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-        // String line;
-        // while ((line = reader.readLine()) != null) {
-        // String[] parts = line.split(",");
-        // if (parts.length != 6) {
-        // continue;
-        // }
-        // int currentId = Integer.parseInt(parts[0]);
-        // if (currentId == id) {
-        // int myWin = Integer.parseInt(parts[2]);
-        // int myLose = Integer.parseInt(parts[3]);
-        // int myDraw = Integer.parseInt(parts[4]);
-
-        // if (result == 0)
-        // myWin++;
-        // else if (result == 1)
-        // myLose++;
-        // else if (result == 2)
-        // myDraw++;
-
-        // line = parts[0] + "," + parts[1] + "," + "," + myWin + "," + myLose + "," +
-        // myDraw;
-        // userFound = true;
-        // }
-        // fileContent.add(line);
-        // }
-        // } catch (IOException e) {
-        // e.printStackTrace();
-        // }
-
-        // if (!userFound) {
-        // System.out.println("User ID " + id + " not found.");
-        // return;
-        // }
-
-        // writeToFile(fileName, fileContent, false);
-        // System.out.println("User ID " + id + " record updated.");
+    // 全員にメッセージを送る。要改善
+    public static void SendAll(String str, String myName, int num) {
+        // 送られた来たメッセージを接続している全員に配る
+        for (ClientProcThread myClientProcThread : myClientProcThreads) { // int i = 1; i <= num; i++
+            myClientProcThread.sendMessage(str + "," + myName + "," + num);
+        }
     }
 
     // mainプログラム
     public static void main(String[] args) {
-        // 必要な配列を確保する
-        incoming = new Socket[maxConnection];
-        flag = new boolean[maxConnection];
-        isr = new InputStreamReader[maxConnection];
-        in = new BufferedReader[maxConnection];
-        out = new PrintWriter[maxConnection];
         myClientProcThread = new ClientProcThread[maxConnection];
-        setDirectoryPath("C:/Users/kou15/PL7");
-        int n = 1;
-
-        try {
+        flag = new boolean[maxConnection];
+        setDirectoryPath("C:/Users/shun0/university/PL7/"); // /Users/akitodate/Desktop/PL/PL7/PL7/PL7/PL7/User.txt
+        int n = 1;// クライアントの番号
+        try (ServerSocket serverSocket = new ServerSocket(10000)) {
             System.out.println("The server has launched!");
-            ServerSocket server = new ServerSocket(10000);// 10000番ポートを利用する
             while (true) {
-                incoming[n] = server.accept();
+                Socket socket = serverSocket.accept();// 10000番ポートを利用する
+                System.out.println("Connected to client No." + n);
                 flag[n] = true;
-                System.out.println("Accept client No." + n);
-                // 必要な入出力ストリームを作成する
-                isr[n] = new InputStreamReader(incoming[n].getInputStream());
-                in[n] = new BufferedReader(isr[n]);
-                out[n] = new PrintWriter(incoming[n].getOutputStream(), true);
-
-<<<<<<< HEAD
-                myClientProcThread[n] = new ClientProcThread(n, incoming[n], isr[n], in[n], out[n]); // 必要なパラメータを渡しスレッドを作成
-=======
-                myClientProcThread[n] = new ClientProcThread(n,incoming[n] ,isr[n],in[n], out[n]); // 必要なパラメータを渡しスレッドを作成
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
-                myClientProcThread[n].start(); // スレッドを開始する
+                ClientProcThread myClientProcThread = new ClientProcThread(n, socket);
+                // myClientProcThread[n] = new ClientProcThread(n, socket);// スレッドを作成する //
+                // リストに変えた．
+                // myClientProcThread[n].start(); // スレッドを開始する
+                myClientProcThreads.add(myClientProcThread);
+                new Thread(myClientProcThread).start();
                 member = n; // メンバーの数を更新する
                 n++;
             }
-<<<<<<< HEAD
-
-=======
-            
-        
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
         } catch (Exception e) {
             System.err.println("ソケット作成時にエラーが発生しました: " + e);
         }
@@ -495,12 +338,11 @@ class Server {
 
 class RoomRepository {
 
-    private static final String FILE_NAME = Server.directoryPath + "/Room.txt";
+    private static final String FILE_NAME = Server.directoryPath + "Room.txt";
     private static final String DELIMITER = ",";
 
     public static String addRoom() {
         List<List<String>> rooms = readRoom();
-        System.out.println(rooms + "addRoom");
         List<String> newRoom = new ArrayList<>();
         newRoom.add(String.valueOf(rooms.size() + 1));
         newRoom.add("0");
@@ -525,9 +367,7 @@ class RoomRepository {
     public static List<String> search(String roomId) {
         List<String> result = new ArrayList<>();
         List<List<String>> rooms = readRoom();
-        System.out.println("search1");
         for (List<String> room : rooms) {
-            System.out.println("search2");
             if (room.get(0).equals(roomId)) {
                 result = room;
                 break;
@@ -607,7 +447,7 @@ class RoomRepository {
 }
 
 class UserRepository {
-    private static final String FILE_NAME = Server.directoryPath + "/User.txt";
+    private static final String FILE_NAME = Server.directoryPath + "User.txt";
     private static final String DELIMITER = ",";
 
     public static List<String> search(String userName) {
@@ -655,10 +495,12 @@ class UserRepository {
                 int lose = Integer.parseInt(user.get(4));
                 int draw = Integer.parseInt(user.get(5));
                 switch (gameResult) {
-                    case 0 | 3:
+                    case 0:
+                    case 3:
                         win++;
                         break;
-                    case 1 | 4:
+                    case 1:
+                    case 4:
                         lose++;
                         break;
                     case 2:
@@ -694,10 +536,17 @@ class UserRepository {
         return result;
     }
 
+    public static String convertListToString(List<List<String>> list) {
+        return list.stream()
+                .map(innerList -> String.join(",", innerList))
+                .collect(Collectors.joining(";"));
+    }
+
     public static void writeUser(List<List<String>> users) {
         List<String> content = new ArrayList<>();
         for (List<String> user : users) {
-            content.add(user.get(0) + DELIMITER + user.get(1) + DELIMITER + user.get(2));
+            content.add(user.get(0) + DELIMITER + user.get(1) + DELIMITER + user.get(2) + DELIMITER + user.get(3)
+                    + DELIMITER + user.get(4) + DELIMITER + user.get(5));
         }
         writeToFile(FILE_NAME, content);
     }
@@ -713,5 +562,4 @@ class UserRepository {
             e.printStackTrace();
         }
     }
-
 }

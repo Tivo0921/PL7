@@ -1,5 +1,4 @@
-//Client.java
-//クライアントプログラム 担当: 佐渡
+//Client.java 5/30
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,12 +12,10 @@ import java.net.Socket;
 public class Client extends JFrame implements ActionListener {
     // グローバル変数
     boolean connectionStatus = false;
-    String playerName = new String();
-    String playerID = new String();
     String password = new String();
     boolean firstMove = true; // 先手か後手か。trueなら自分が先手、falseなら自分が後手
     String myName;// 自分のプレイヤ名
-    String opponentName;// 相手のプレイヤ名
+    public String opponentName;// 相手のプレイヤ名
     // 定数
     static final int ROW = 8; // オセロ盤の行数・列数
     // プライベート変数
@@ -62,6 +59,34 @@ public class Client extends JFrame implements ActionListener {
         // オセロ盤に必要な情報を生成
         boardButtonArray = new JButton[ROW][ROW];// ボタンの配列を作成
         myOthello = new Othello(0, 0);// Otelloインスタンスを作成
+    }
+
+    // Server の Listen メソッド
+    public void listen() {
+        try {
+            while (!reader.ready()) {
+                Thread.sleep(100);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Thread sleep error");
+        } catch (IOException e) {
+            System.out.println("BufferedReader ready error");
+            e.printStackTrace();
+        }
+    }
+
+    public void listenCheckServerMessage() {
+        try {
+            while (!reader.ready()) {
+                System.out.println("User1:ServerからUser2の名前をlisten中");
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Thread sleep error");
+        } catch (IOException e) {
+            System.out.println("BufferedReader ready error");
+            e.printStackTrace();
+        }
     }
 
     /* 接続要求 */
@@ -144,38 +169,45 @@ public class Client extends JFrame implements ActionListener {
         return true;
     }
 
-    /* 入力されたルームID受付 */
+    /* 入力されたルームID受付 Player2 の処理 */
     public int acceptRoomID(int roomID) {
         // 引数に入力したルームが存在するかをサーバに問い合わせ、存在すれば同じIDをそのまま返す
         // 存在しない場合は新たなルームを作成し、そのIDを返す
         String message = "";
         try {
-            //サーバにメッセージを送る
+            // サーバにメッセージを送る
             writer.println("search room");
+            writer.flush();
             writer.println(roomID);
             // ルームIDを受け取る
+            listen();
             message = reader.readLine();
+            System.out.println("User2のClient が Server から roomID 受付．message :" + message); // ここまで来れてる
+            String[] ReceivedReader = message.split(",");
             // 相手ユーザーの名前を受信
-            opponentName = reader.readLine();
+            roomID = Integer.parseInt(ReceivedReader[0]);
+            opponentName = ReceivedReader[1];
             System.out.println("opponentName = " + opponentName);
-            // 先手後手情報の設定（既存のルームに入ったか、新たなルームを作ったかによって変える）
-            if(roomID == Integer.parseInt(message)) firstMove = false;
-            else firstMove = true;
+            listen();
+            message = reader.readLine();
+            firstMove = false;
         } catch (IOException e) {
             System.out.println("Error: IOException (in 入力されたルームID受付)");
         }
-        return Integer.parseInt(message);
+        return roomID;
     }
 
-    /* 作成したルームID取得 */
+    /* 作成したルームID取得．Player1 の処理 */
     public int getRoomID() {
         String message = "";
         try {
             writer.println("make a room");
             System.out.println("make a room書き込み");
             // ルームIDを受信
-            message = reader.readLine();
-            System.out.println("opponentName = " + opponentName);
+            listen();
+            System.out.println("Client が Server から ID 受付");
+            message = reader.readLine(); // ここのreader はroomIDを取得
+            // System.out.println("opponentName = " + message);
             // 先手後手情報の設定
             firstMove = true;
         } catch (IOException e) {
@@ -205,12 +237,20 @@ public class Client extends JFrame implements ActionListener {
     /* 戻り値: メッセージ受信の有無 */
     public boolean checkServerMessage() {
         boolean result = false;
+        String messagefromSendAll;
         try {
-            if (reader.ready()) {// 受信の有無を確認
-                System.out.println(reader.readLine());// メッセージを受け取って出力
-                result = true;
-            }
+            System.out.println("use2のid取得前");
+            listenCheckServerMessage(); // ここで欲しいのは connected，opponentname, clientNo.
+            System.out.println("checkServerMessageのlisten抜けた");
+            messagefromSendAll = reader.readLine();
+            System.out.println("受け取ったメッセージ:" + messagefromSendAll);
+            String[] ReceivedReader = messagefromSendAll.split(",");
+            // 相手ユーザーの名前を受信
+            opponentName = ReceivedReader[1];
+            System.out.println("opponentName = " + opponentName);
+            result = true;
         } catch (IOException e) {
+            System.out.println("IOException");
         }
         return result;
     }
@@ -220,7 +260,9 @@ public class Client extends JFrame implements ActionListener {
     public String getServerMessage() {
         String message;
         try {
+            listen();
             message = reader.readLine();// メッセージを受け取って出力
+            System.out.println("getServerMessage で受け取ったmessage: " + message);
         } catch (IOException e) {
             message = "";// エラーが起きた場合は空の文字列を返す
         }
@@ -286,6 +328,7 @@ public class Client extends JFrame implements ActionListener {
         passButton.addActionListener(this);// ボタンの押下を検知できるようにする
         passButton.setActionCommand("pass");// 押されたボタンを識別するコマンドの設定
         // 石の数を表示するテキストエリア
+        System.out.println("myColor =" + myColor);
         if (myColor == 1) {// 石の色を表示するための準備
             myColorName = "黒";
             opponentColorName = "白";
@@ -329,13 +372,20 @@ public class Client extends JFrame implements ActionListener {
     /* 対戦相手の操作情報を受信 */
     public int recieveOpponentMove() {
         int opponentNextOp = 0;
+        String boardString;
         updateTextArea(1, "対戦相手の番です\n操作を待っています");
         try {
-            String boardString = reader.readLine(); // 操作情報を文字列として受信（以下で文字列から数値を抽出）
+            if (reader.ready()) {
+                boardString = reader.readLine();
+            }
+            boardString = reader.readLine(); // 操作情報を文字列として受信（以下で文字列から数値を抽出）
+            System.out.println("boardString = " + boardString);
             opponentNextOp = Integer.parseInt(boardString.substring(0, 1)); // 1つ目の引数（操作の種類）を取得
             int x = Integer.parseInt(boardString.substring(2, 3)); // 2つ目の引数（操作対象のx座標）を取得
             int y = Integer.parseInt(boardString.substring(4, 5)); // 3つ目の引数（操作対象のy座標）を取得
-            int opponentColor = 0;// Integer.parseInt(boardString.substring(6,7)); //4つ目の引数（操作対象の色）を取得
+            int opponentColor = Integer.parseInt(boardString.substring(6, 7)); // 4つ目の引数（操作対象の色）を取得
+            System.out.println("[操作受信]opponentNextOp=" + opponentNextOp + ",x=" + x + ",y=" + y + "opponentColor="
+                    + opponentColor);
 
             if (opponentNextOp == 0) { // 操作の種類:0（石を置く）
                 board = myOthello.calcBoard(x, y, opponentColor); // 実際に盤面を計算
@@ -357,6 +407,7 @@ public class Client extends JFrame implements ActionListener {
             System.out.println("対戦相手の操作完了");
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return opponentNextOp; // 相手の操作の種類を戻り値として返す
@@ -404,6 +455,7 @@ public class Client extends JFrame implements ActionListener {
                 }
             }
         }
+        System.out.println("[操作受付]nextOp=" + nextOp + ",placeX=" + placeX + ",placeY=" + placeY);
         // ループここまで
     }
 
@@ -412,6 +464,13 @@ public class Client extends JFrame implements ActionListener {
         // 操作情報をStringに変換して送信する
         String boardString = nextOp + "," + placeX + "," + placeY + "," + myColor;
         writer.println(boardString);
+        System.out.println("[操作送信]nextOp=" + nextOp + ",placeX=" + placeX + ",placeY=" + placeY + "myColor=" + myColor);
+        // 直後に自分の操作情報がサーバから返ってくるので受け取る
+        try {
+            String message = reader.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /* 盤面に反映 */
@@ -449,7 +508,7 @@ public class Client extends JFrame implements ActionListener {
     public void sendGameResult(int result) {
         writer.println("match end");
         // 勝ちなら0、負けなら1、引き分けなら2を送信
-        writer.println(playerID + "," + result);
+        writer.println(myName + "," + result);
     }
 
     /* 勝敗分を表示 */
@@ -476,11 +535,9 @@ public class Client extends JFrame implements ActionListener {
         JLabel resultLabel = new JLabel("", SwingConstants.CENTER);
         JLabel resignLabel = new JLabel("(投了)");
         JButton endButton = new JButton("対戦終了");
-        JButton rematchButton = new JButton("続けて対戦する");
-        // resultLabelの表示名は勝ち負けによって変わる
         if (gameResult == 0 || gameResult == 3)
             resultLabel.setText("You Win!");
-        else if (gameResult == 0 || gameResult == 4)
+        else if (gameResult == 1 || gameResult == 4)
             resultLabel.setText("You Lose...");
         else
             resultLabel.setText("Draw");
@@ -500,13 +557,9 @@ public class Client extends JFrame implements ActionListener {
         resultLabel.setBounds(105, 220, 180, 40);
         resignLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 16));
         resignLabel.setBounds(170, 190, 180, 40);
-        endButton.setBounds(15, 280, 175, 30);
+        endButton.setBounds(105, 280, 180, 30);
         endButton.addActionListener(this);
         endButton.setActionCommand("end");
-        rematchButton.setBounds(200, 280, 175, 30);
-        rematchButton.addActionListener(this);
-        rematchButton.setActionCommand("rematch");
-        // ペインに貼り付けて再描画
         c.add(myStoneNum);
         c.add(opponentStoneNum);
         c.add(vsLabel);
@@ -516,7 +569,6 @@ public class Client extends JFrame implements ActionListener {
         if (gameResult == 3 || gameResult == 4)
             c.add(resignLabel); // 投了で決着がついた場合のみ「(投了)」を表示する
         c.add(endButton);
-        c.add(rematchButton);
         c.repaint();
 
         // 操作の受け付け
@@ -532,24 +584,19 @@ public class Client extends JFrame implements ActionListener {
         // 今表示されているものをすべて取り除く
         c.removeAll();
         // 押されたボタンによって分岐
-        if (command.equals("rematch"))
-            return true;
-        else
-            return false;
+        if (command.equals("end"))
+            System.exit(0);
+        return false;
     }
 
     /* 対戦成績表示 */
     public void displayGameRecord() {
-
-        // テスト用の仮データ
-        // String recordString = "1,2,3;4,5,6;7,8,9;10,11,12;50,50,400;70,70,1120";
         String recordString = "";
 
         // 対戦成績をサーバから要求
         try {
-            System.out.println("client 561");
             writer.println("View Results");
-            System.out.println("client 563");
+            writer.flush();
             recordString = reader.readLine();
             System.out.println(recordString);
         } catch (IOException e) {
@@ -558,21 +605,13 @@ public class Client extends JFrame implements ActionListener {
         // 一列のStringで送られてきたデータを分割していく（セミコロン毎に1人分、カンマ毎に数値区切り）
         // 最終的にrecordに格納される
         String recordString2[] = recordString.split(";");
-        String recordString3[][] = new String[recordString2.length][3];
+        String recordString3[][] = new String[recordString2.length][6];
         int record[][] = new int[recordString2.length][3];
         for (int i = 0; i < recordString2.length; i++) {
             recordString3[i] = recordString2[i].split(",");
-            for (int j = 0; j < 3; j++)
-                record[i][j] = Integer.parseInt(recordString3[i][j]);
         }
 
-        String[] recordName = { "Player001", "Player002",
-                "Player003", "Player004",
-                "Player005", "Player006",
-                "Player007", "Player008",
-                "Player009", "Player010",
-                "Player011", "Player012" };
-        int num = 6;// 成績のデータ行数（＝人数）
+        int num = recordString2.length;// 成績のデータ行数（＝人数）
 
         // JFrameの設定
         JFrame myFrame = new JFrame("成績閲覧");// 作成
@@ -593,20 +632,17 @@ public class Client extends JFrame implements ActionListener {
         JTextField recordText[][] = new JTextField[num][3];
         // 対戦成績本体（1行毎にループを用いてpに貼り付けていく）
         for (int i = 0; i < num; i++) {
-            recordText[i][0] = new JTextField(recordName[i], 19); // テキストエリア作成
-            recordText[i][1] = new JTextField(Integer.toString(record[i][0]) + "勝" +
-                    Integer.toString(record[i][1]) + "敗" +
-                    Integer.toString(record[i][2]) + "分", 15);
-            recordText[i][2] = new JTextField("投了数" + Integer.toString(record[i][0] + record[i][1] + record[i][2]), 10);
+            recordText[i][0] = new JTextField(recordString3[i][1], 19); // テキストエリア作成
+            recordText[i][1] = new JTextField(recordString3[i][3] + "勝" +
+                    recordString3[i][4] + "敗" +
+                    recordString3[i][5] + "分", 15);
             recordText[i][0].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13)); // フォントの設定
             recordText[i][1].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
-            recordText[i][2].setFont(new Font("ＭＳ ゴシック", Font.BOLD, 13));
+            // recordText[i][2].setFont(new Font("Arial", Font.BOLD, 13));
             recordText[i][0].setEditable(false); // 編集不可能にする
             recordText[i][1].setEditable(false);
-            recordText[i][2].setEditable(false);
             p.add(recordText[i][0]);
             p.add(recordText[i][1]);
-            p.add(recordText[i][2]);
         }
         myFrame.add(scrollpane, BorderLayout.CENTER); // データをまとめたJScrollPaneをJFrameに貼り付ける
         myFrame.setVisible(true); // 最後にJFrameの表示処理
@@ -618,28 +654,33 @@ public class Client extends JFrame implements ActionListener {
         JOptionPane.showMessageDialog(this, label);
     }
 
+    public String getOpponentName() {
+        return opponentName;
+    }
+
     /* ゲーム全体（ゲーム進行の大枠。マッチングが終了次第Playerプログラムから呼び出される） */
     public boolean game() {
-        int turn;
-        boolean rematch;
+        System.out.println("ゲーム開始");
+        int turn = 0;
+        boolean rematch = false;
 
-<<<<<<< HEAD
         // 事前にPlayer側からこちらのユーザ名・相手側のユーザ名・先手後手の情報を受け取っておく
 
-        opponentName = getServerMessage();// 相手のユーザ名
-
-=======
->>>>>>> 8c42e2e33917ff36f3283534bd21627bc322b77d
         setVisible(true);
         while (true) {
             int opponentNextOp = 0;
             // 先手・後手の情報（firstMove）をもとに最初の手番と双方の石の色を決定
+            System.out.println("firstMove = " + firstMove);
             if (firstMove) {
+                System.out.println("turn = 0");
                 turn = 0;
                 myColor = 1;
-            } else {
-                turn = 1;
                 opponentColor = 2;
+            } else {
+                System.out.println("turn = 1");
+                turn = 1;
+                myColor = 2;
+                opponentColor = 1;
             }
 
             // 対戦開始
@@ -648,17 +689,20 @@ public class Client extends JFrame implements ActionListener {
             while (!checkGameEnd(0)) {// 盤面をチェックし、対局終了となるまで繰り返す
                 if (turn == 0) {
                     // 自分の手番の場合
+                    System.out.println("自分のターン");
                     acceptPlayerMove();// プレイヤ入力の受け付け
                     sendMoveInfo();// 操作情報をサーバに送信
                     if (nextOp == 1)
                         break;// もし投了した場合はそこでゲーム終了（強制的にループを抜ける）
                 } else {
                     // 相手の手番の場合
+                    System.out.println("相手のターン");
                     opponentNextOp = recieveOpponentMove();// 相手の操作情報をサーバから受信
                     if (opponentNextOp == 1)
                         break;// もし相手が投了したらそこでゲーム終了（強制的にループを抜ける）
                 }
                 updateBoard();// 盤面の再描画
+                System.out.println("盤面再描画");
                 if (turn == 1)
                     turn = 0; // 手番を変える
                 else if (turn == 0)
@@ -686,6 +730,7 @@ public class Client extends JFrame implements ActionListener {
 
             break;
         }
+        setVisible(false);
         return rematch;
     }
 
